@@ -1,4 +1,5 @@
 import express from 'express';
+import characterRouter from '../src/routes/character.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 
@@ -10,7 +11,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.json());
-//app.use('/api', []);
+app.use('/api', [characterRouter]);
 app.use(errorHandlingMiddleware);
 
 app.listen(PORT, () => {
