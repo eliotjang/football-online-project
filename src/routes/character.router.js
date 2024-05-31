@@ -15,6 +15,11 @@ router.get('/character/info', async (req, res, next) => {
       where: {
         UserId: userId,
       },
+      select: {
+        characterId: true,
+        name: true,
+        cash: true,
+      },
     });
 
     return res.status(200).json({
