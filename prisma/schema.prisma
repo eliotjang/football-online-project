@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,14 +7,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Items {
-  itemCode Int @id @map("item_code")
-  itemName String @map("item_name")
-  itemHealth Int? @map("item_health")
-  itemPower Int? @map("item_power")
-  itemPrice Int @map("item_price")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+model User {
+  userId Int @id @default(autoincrement()) @map("user_id")
+  email String @unique @map("email")
+  password String @map("password")
 
-  @@map("items")
+  Character Character?
+  @@map("user")
+}
+
+model Character {
+  characterId Int @id @default(autoincrement()) @map("character_id")
+  UserId Int @unique @map("user_id")
+  name String @unique @map("name")
+  cash Int @default(10000) @map("cash")
+
+  CharacterPlayer CharacterPlayer[]
+  Roster Roster?
+
+  User User @relation(fields: [UserId], references: [userId], onDelete: Cascade)
+  @@map("character")
+}
+
+model CharacterPlayer {
+  characterPlayerId Int @id @default(autoincrement()) @map("character_player_id")
+  CharacterId Int @map("character_id")
+  playerId Int @map("player_id")
+  upgradeLevel Int @default(0) @map("upgrade_level")
+  playerCount Int @default(0) @map("player_count")
+
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  @@map("character_player")
+}
+
+model Roster {
+  rosterId Int @id @default(autoincrement()) @map("roster_id")
+  CharacterId Int @unique @map("character_id")
+  characterPlayerId1 Int @map("character_player_id1")
+  characterPlayerId2 Int @map("character_player_id2")
+  characterPlayerId3 Int @map("character_player_id3")
+
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  @@map("roster")
+}
+
+model GameRecord {
+  gameRecordId Int @id @default(autoincrement()) @map("game_record_id")
+  characterId1 Int @map("character_id1")
+  characterId2 Int @map("character_id2")
+  characterId1Win Boolean @default(false) @map("character_id1_win")
+  characterId1Lose Boolean @default(false) @map("character_id1_lose")
+  characterId1Draw Boolean @default(false) @map("character_id1_Draw")
+  characterId2Win Boolean @default(false) @map("character_id2_win")
+  characterId2Lose Boolean @default(false) @map("character_id2_lose")
+  characterId2Draw Boolean @default(false) @map("character_id2_Draw")
+  characterId1Score Int @default(0) @map("character_id1_score")
+  characterId2Score Int @default(0) @map("character_id2_score")
+  @@map("game_record")
+}
+
+model Player {
+  playerId Int @id @default(autoincrement()) @map("player_id")
+  upgradeLevel Int @map("upgrade_level") // Prisma 복합키(PK) 대입방법 확인 후 @id 기입 예정
+  playerName String @map("player_name")
+  playerSpeed Int @map("player_speed")
+  goalDecision Int @map("goal_decision")
+  shootPower Int @map("shoot_power")
+  defence Int @map("defence")
+  stamina Int @map("stamina")
+  rarity Int @map("rarity")
+  value Int @map("value")
+  @@map("player")
 }
