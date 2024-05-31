@@ -1,5 +1,6 @@
 import express from 'express';
 import UserRouter from './routes/user.router.js';
+import CharacterRouter from '../src/routes/character.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -13,7 +14,7 @@ app.get('/', (req, res) => {
 
 app.use(express.json());
 app.use(cookieParser());
-app.use('/api', [UserRouter]);
+app.use('/api', [UserRouter, CharacterRouter]);
 app.use(errorHandlingMiddleware);
 
 app.listen(PORT, () => {
