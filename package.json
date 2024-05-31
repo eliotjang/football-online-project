@@ -1,0 +1,25 @@
+{
+  "name": "football-online-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/eliotjang/football-online-project.git",
+  "author": "Eliot Jang <eliotjang2@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.14.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.2"
+  }
+}
