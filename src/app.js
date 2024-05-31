@@ -1,6 +1,6 @@
 import express from 'express';
-import ItemsRouter from './routes/items.router.js';
 import UserRouter from './routes/user.router.js';
+import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 
 const app = express();
@@ -11,7 +11,8 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.json());
-app.use('/api', [ItemsRouter, UserRouter]);
+app.use('/api', [UserRouter]);
+app.use(errorHandlingMiddleware);
 
 app.listen(PORT, () => {
   console.log(PORT, '포트 서버 연결 완료');
