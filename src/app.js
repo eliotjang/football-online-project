@@ -5,6 +5,7 @@ import CashRouter from '../src/routes/cash.router.js';
 import RankingSystemRouter from '../src/routes/ranking-system.router.js';
 import DrawRouter from './routes/draw.router.js';
 import GameRouter from './routes/game.router.js';
+import RankGameRouter from './routes/rank-game.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -18,7 +19,7 @@ app.get('/', (req, res) => {
 
 app.use(express.json());
 app.use(cookieParser());
-app.use('/api', [UserRouter, CharacterRouter, CashRouter, DrawRouter, GameRouter, RankingSystemRouter]);
+app.use('/api', [UserRouter, CharacterRouter, CashRouter, DrawRouter, GameRouter, RankingSystemRouter, RankGameRouter]);
 app.use(errorHandlingMiddleware);
 
 app.listen(PORT, () => {
