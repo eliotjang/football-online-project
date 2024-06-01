@@ -39,6 +39,9 @@ model CharacterPlayer {
   playerCount       Int @default(0) @map("player_count")
 
   Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  // RosterPlayer1  Roster? @relation("CharacterPlayerId1")
+  // RosterPlayer2  Roster? @relation("CharacterPlayerId2")
+  // RosterPlayer3  Roster? @relation("CharacterPlayerId3")
 
   @@map("character_player")
 }
@@ -49,8 +52,14 @@ model Roster {
   characterPlayerId1 Int @map("character_player_id1")
   characterPlayerId2 Int @map("character_player_id2")
   characterPlayerId3 Int @map("character_player_id3")
+  // CharacterPlayerId1 Int @unique @map("character_player_id1")
+  // CharacterPlayerId2 Int @unique @map("character_player_id2") 
+  // CharacterPlayerId3 Int @unique @map("character_player_id3")
 
   Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  // CharacterPlayer1 CharacterPlayer @relation("CharacterPlayerId1",fields: [CharacterPlayerId1], references: [characterPlayerId],onDelete: Restrict)
+  // CharacterPlayer2 CharacterPlayer @relation("CharacterPlayerId2",fields: [CharacterPlayerId2], references: [characterPlayerId],onDelete: Restrict)
+  // CharacterPlayer3 CharacterPlayer @relation("CharacterPlayerId3",fields: [CharacterPlayerId3], references: [characterPlayerId],onDelete: Restrict)
 
   @@map("roster")
 }
