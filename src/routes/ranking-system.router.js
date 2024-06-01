@@ -27,24 +27,12 @@ router.get('/ranking', async (req, res, next) => {
         },
       });
 
-      // 점수 확인을 위한 임의의 값 지정
-      let wins = 6;
-      let draws = 2;
-      let losses = 1;
-
-      if (character.name === '행당동드록바') {
-        wins = 3;
-        draws = 0;
-        losses = 1;
-      }
-      if (character.name === '황인준') {
-        wins = 9;
-        draws = 0;
-        losses = 1;
-      }
+      let wins = 0;
+      let draws = 0;
+      let losses = 0;
 
       // 랭크 풋살 게임 API 기능 구현 시 추가 예정
-      /* for (const record of gameRecord1) {
+      for (const record of gameRecord1) {
         record.characterId1Win === true && wins++;
         record.characterId1Lose === true && losses++;
       }
@@ -52,7 +40,7 @@ router.get('/ranking', async (req, res, next) => {
         record.characterId2Win === true && wins++;
         record.characterId2Draw === true && draws++;
         record.characterId2Lose === true && losses++;
-      } */
+      }
 
       const winRate = Math.round((wins / (wins + losses + draws)) * 100) + '%';
       const gameScore = 1000 + 10 * wins - 10 * losses;
