@@ -132,19 +132,24 @@ router.delete('/roster', authMiddleware, async (req, res, next) => {
     const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
     const characterPlayerIds = [CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3];
 
-    await prisma.$transaction(async (tx) => {
-      await tx.roster.delete({
-        where: { CharacterId: character.characterId },
-      });
-
-      // 캐릭터 보유 선수 명단에 추가 (playerCount + 1)
-      for (const characterPlayerId of characterPlayerIds) {
-        await tx.characterPlayer.update({
-          where: { characterPlayerId },
-          data: { playerCount: { increment: 1 } },
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.roster.delete({
+          where: { CharacterId: character.characterId },
         });
+
+        // 캐릭터 보유 선수 명단에 추가 (playerCount + 1)
+        for (const characterPlayerId of characterPlayerIds) {
+          await tx.characterPlayer.update({
+            where: { characterPlayerId },
+            data: { playerCount: { increment: 1 } },
+          });
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
-    });
+    );
 
     return res.status(200).json({ message: '출전 선수 명단이 제거되었습니다.' });
   } catch (error) {
