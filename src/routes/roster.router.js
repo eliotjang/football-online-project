@@ -61,9 +61,9 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
           roster = await tx.roster.create({
             data: {
               CharacterId: character.characterId,
-              CharacterPlayerId1: characterPlayerId1,
-              CharacterPlayerId2: characterPlayerId2,
-              CharacterPlayerId3: characterPlayerId3,
+              CharacterPlayerId1,
+              CharacterPlayerId2,
+              CharacterPlayerId3,
             },
           });
         }
@@ -72,9 +72,9 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
           roster = await tx.roster.update({
             where: { CharacterId: character.characterId },
             data: {
-              CharacterPlayerId1: characterPlayerId1,
-              CharacterPlayerId2: characterPlayerId2,
-              CharacterPlayerId3: characterPlayerId3,
+              CharacterPlayerId1,
+              CharacterPlayerId2,
+              CharacterPlayerId3,
             },
           });
           // 명단 변경 이전 출전 선수 캐릭터 보유 선수 명단에 추가
@@ -140,7 +140,7 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
 
       const { playerId, upgradeLevel } = characterPlayer;
       const player = await prisma.player.findUnique({
-        where: { playerId, upgradeLevel },
+        where: { playerId_upgradeLevel: { playerId, upgradeLevel } },
       });
 
       if (!player) {
@@ -181,7 +181,7 @@ router.get('/roster/:characterId', async (req, res, next) => {
 
       const { playerId, upgradeLevel } = characterPlayer;
       const player = await prisma.player.findUnique({
-        where: { playerId, upgradeLevel },
+        where: { playerId_upgradeLevel: { playerId, upgradeLevel } },
       });
 
       if (!player) {
