@@ -8,20 +8,20 @@ const router = express.Router();
 
 // 선수 명단 유효성 검사
 const characterPlayersSchema = Joi.object({
-  characterPlayerId1: Joi.number().integer().required(),
-  characterPlayerId2: Joi.number().integer().required(),
-  characterPlayerId3: Joi.number().integer().required(),
+  CharacterPlayerId1: Joi.number().integer().required(),
+  CharacterPlayerId2: Joi.number().integer().required(),
+  CharacterPlayerId3: Joi.number().integer().required(),
 });
 
 // 출전 선수 명단 구성 API (JWT 인증)
 router.post('/roster', authMiddleware, async (req, res, next) => {
   try {
     const validaion = await characterPlayersSchema.validateAsync(req.body);
-    const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = validaion;
+    const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = validaion;
     if (
-      characterPlayerId1 === characterPlayerId2 ||
-      characterPlayerId1 === characterPlayerId3 ||
-      characterPlayerId2 === characterPlayerId3
+      CharacterPlayerId1 === CharacterPlayerId2 ||
+      CharacterPlayerId1 === CharacterPlayerId3 ||
+      CharacterPlayerId2 === CharacterPlayerId3
     ) {
       return res.status(409).json({ errorMessage: '선수 아이디가 중복되었습니다.' });
     }
@@ -33,12 +33,12 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       include: { CharacterPlayer: true, Roster: true },
     });
     // ##################################################################################
-    const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
+    const characterPlayerIds = [CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3];
     for (const characterPlayerId of characterPlayerIds) {
       const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
         return characterPlayer.characterPlayerId === characterPlayerId;
       });
-      console.log(character.CharacterPlayer, characterPlayer, characterPlayerId);
+
       if (!characterPlayer) {
         return res.status(400).json({ errorMessage: '선수 아이디가 유효하지 않습니다.' });
       }
@@ -61,9 +61,9 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
           roster = await tx.roster.create({
             data: {
               CharacterId: character.characterId,
-              characterPlayerId1,
-              characterPlayerId2,
-              characterPlayerId3,
+              CharacterPlayerId1: characterPlayerId1,
+              CharacterPlayerId2: characterPlayerId2,
+              CharacterPlayerId3: characterPlayerId3,
             },
           });
         }
@@ -72,16 +72,16 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
           roster = await tx.roster.update({
             where: { CharacterId: character.characterId },
             data: {
-              characterPlayerId1,
-              characterPlayerId2,
-              characterPlayerId3,
+              CharacterPlayerId1: characterPlayerId1,
+              CharacterPlayerId2: characterPlayerId2,
+              CharacterPlayerId3: characterPlayerId3,
             },
           });
           // 명단 변경 이전 출전 선수 캐릭터 보유 선수 명단에 추가
           const {
-            characterPlayerId1: preCharacterPlayerId1,
-            characterPlayerId2: preCharacterPlayerId2,
-            characterPlayerId3: preCharacterPlayerId3,
+            CharacterPlayerId1: preCharacterPlayerId1,
+            CharacterPlayerId2: preCharacterPlayerId2,
+            CharacterPlayerId3: preCharacterPlayerId3,
           } = character.Roster;
           const preRoster = [preCharacterPlayerId1, preCharacterPlayerId2, preCharacterPlayerId3];
 
@@ -103,9 +103,9 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
     return res.status(201).json({
       message: '출전 선수 명단입니다.',
       data: {
-        characterPlayerId1: roster.characterPlayerId1,
-        characterPlayerId2: roster.characterPlayerId2,
-        characterPlayerId3: roster.characterPlayerId3,
+        CharacterPlayerId1: roster.CharacterPlayerId1,
+        CharacterPlayerId2: roster.CharacterPlayerId2,
+        CharacterPlayerId3: roster.CharacterPlayerId3,
       },
     });
   } catch (error) {
@@ -129,8 +129,8 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
       return res.status(200).json({ data: [] });
     }
 
-    const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = character.Roster;
-    const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
+    const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
+    const characterPlayerIds = [CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3];
     const players = [];
 
     for (const characterPlayerId of characterPlayerIds) {
@@ -170,8 +170,8 @@ router.get('/roster/:characterId', async (req, res, next) => {
       return res.status(200).json({ data: [] });
     }
 
-    const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = character.Roster;
-    const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
+    const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
+    const characterPlayerIds = [CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3];
     const players = [];
 
     for (const characterPlayerId of characterPlayerIds) {
