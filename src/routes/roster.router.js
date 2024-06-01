@@ -113,6 +113,50 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
   }
 });
 
+// 출전 선수 명단 제거 API (JWT 인증)
+router.delete('/roster', authMiddleware, async (req, res, next) => {
+  try {
+    // ##################################################################################
+    // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
+    const { userId } = req.user;
+    const character = await prisma.character.findUnique({
+      where: { UserId: userId },
+      include: { CharacterPlayer: true, Roster: true },
+    });
+    // ##################################################################################
+
+    if (!character.Roster) {
+      return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
+    }
+
+    const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
+    const characterPlayerIds = [CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3];
+
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.roster.delete({
+          where: { CharacterId: character.characterId },
+        });
+
+        // 캐릭터 보유 선수 명단에 추가 (playerCount + 1)
+        for (const characterPlayerId of characterPlayerIds) {
+          await tx.characterPlayer.update({
+            where: { characterPlayerId },
+            data: { playerCount: { increment: 1 } },
+          });
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      }
+    );
+
+    return res.status(200).json({ message: '출전 선수 명단이 제거되었습니다.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // 출전 선수 명단 조회 API (JWT 인증)
 router.get('/roster', authMiddleware, async (req, res, next) => {
   try {
@@ -126,7 +170,7 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
     // ##################################################################################
 
     if (!character.Roster) {
-      return res.status(200).json({ data: [] });
+      return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
     }
 
     const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
@@ -166,8 +210,12 @@ router.get('/roster/:characterId', async (req, res, next) => {
       include: { CharacterPlayer: true, Roster: true },
     });
 
+    if (!character) {
+      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 아이디입니다.' });
+    }
+
     if (!character.Roster) {
-      return res.status(200).json({ data: [] });
+      return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
     }
 
     const { CharacterPlayerId1, CharacterPlayerId2, CharacterPlayerId3 } = character.Roster;
