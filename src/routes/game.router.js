@@ -145,15 +145,15 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
                 //A팀이 이길 경우
                 teamAScore += 1;
                 gameLog.push({
-                    gameTime : currentTime,
-                    goalTeam : "A",
+                    gameTime : `${currentTime}분`,
+                    goalTeam : `${teamACharacter.name} 팀`,
                 })
             } else {
                 //B팀이 이길 경우
                 teamBScore += 1;
                 gameLog.push({
-                    gameTime : currentTime,
-                    goalTeam : "B",
+                    gameTime : `${currentTime}분`,
+                    goalTeam : `${teamBCharacter.name} 팀`,
                 })
             }
             currentTime += Math.floor(Math.random() * 45); //경기가 지난 시간 랜덤으로 결정
