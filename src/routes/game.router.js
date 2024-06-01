@@ -1,7 +1,7 @@
-import express from "express";
+import express from 'express';
 import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from "../utils/prisma/index.js"
-import { Prisma } from "@prisma/client";
+import { prisma } from '../utils/prisma/index.js';
+import { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ router.post("/games/play/:characterId", authMiddleware, async (req, res, next) =
             }
         })
 
-        
+
         const teamARosterList = [teamARoster.characterPlayerId1, teamARoster.characterPlayerId2, teamARoster.characterPlayerId3];
         const teamBRosterList = [teamBRoster.characterPlayerId1, teamBRoster.characterPlayerId2, teamBRoster.characterPlayerId3];
 
@@ -75,7 +75,6 @@ router.post("/games/play/:characterId", authMiddleware, async (req, res, next) =
                 }
             })
         })
-
 
         let teamAStat = 0;
         let teamBStat = 0;
@@ -117,7 +116,7 @@ router.post("/games/play/:characterId", authMiddleware, async (req, res, next) =
                 teamBScore += 1;
             }
 
-            console.log(teamAScore," : " , teamBScore)
+            console.log(teamAScore, " : ", teamBScore)
         }
 
         if (teamAScore > teamBScore) {
