@@ -67,8 +67,8 @@ model GameRecord {
 }
 
 model Player {
-  playerId Int @id @default(autoincrement()) @map("player_id")
-  upgradeLevel Int @map("upgrade_level") // Prisma 복합키(PK) 대입방법 확인 후 @id 기입 예정
+  playerId Int @map("player_id")
+  upgradeLevel Int @map("upgrade_level") 
   playerName String @map("player_name")
   playerSpeed Int @map("player_speed")
   goalDecision Int @map("goal_decision")
@@ -77,5 +77,7 @@ model Player {
   stamina Int @map("stamina")
   rarity Int @map("rarity")
   value Int @map("value")
+
+  @@id([playerId, upgradeLevel])
   @@map("player")
 }
