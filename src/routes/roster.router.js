@@ -1,5 +1,5 @@
 import express from 'express';
-import Joi, { date } from 'joi';
+import Joi from 'joi';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import { prisma } from '../utils/prisma/index.js';
 
@@ -7,9 +7,9 @@ const router = express.Router();
 
 // 선수 명단 유효성 검사
 const characterPlayersSchema = Joi.object({
-  playerId1: Joi.number().integer().required(),
-  playerId2: Joi.number().integer().required(),
-  playerId3: Joi.number().integer().required(),
+  characterPlayerId1: Joi.number().integer().required(),
+  characterPlayerId2: Joi.number().integer().required(),
+  characterPlayerId3: Joi.number().integer().required(),
 });
 
 // 출전 선수 명단 구성 API (JWT 인증)
@@ -108,7 +108,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
 });
 
 // 출전 선수 명단 조회 API (JWT 인증)
-router.post('/roster', authMiddleware, async (req, res, next) => {
+router.get('/roster', authMiddleware, async (req, res, next) => {
   try {
     // ##################################################################################
     // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
@@ -118,6 +118,10 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       include: { CharacterPlayer: true, Roster: true },
     });
     // ##################################################################################
+
+    if (!character.Roster) {
+      return res.status(200).json({ data: [] });
+    }
 
     const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = character.Roster;
     const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
@@ -147,14 +151,18 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
 });
 
 // 출전 선수 명단 조회 API
-router.post('/roster/:characterId', async (req, res, next) => {
+router.get('/roster/:characterId', async (req, res, next) => {
   try {
     const { characterId } = req.params;
 
     const character = await prisma.character.findUnique({
-      where: { characterId },
+      where: { characterId: +characterId },
       include: { CharacterPlayer: true, Roster: true },
     });
+
+    if (!character.Roster) {
+      return res.status(200).json({ data: [] });
+    }
 
     const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = character.Roster;
     const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
