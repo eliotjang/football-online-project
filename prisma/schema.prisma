@@ -8,75 +8,86 @@ datasource db {
 }
 
 model User {
-  userId Int @id @default(autoincrement()) @map("user_id")
-  email String @unique @map("email")
+  userId   Int    @id @default(autoincrement()) @map("user_id")
+  email    String @unique @map("email")
   password String @map("password")
 
   Character Character?
+
   @@map("user")
 }
 
 model Character {
-  characterId Int @id @default(autoincrement()) @map("character_id")
-  UserId Int @unique @map("user_id")
-  name String @unique @map("name")
-  cash Int @default(10000) @map("cash")
+  characterId Int    @id @default(autoincrement()) @map("character_id")
+  UserId      Int    @unique @map("user_id")
+  name        String @unique @map("name")
+  cash        Int    @default(10000) @map("cash")
 
   CharacterPlayer CharacterPlayer[]
-  Roster Roster?
+  Roster          Roster?
 
   User User @relation(fields: [UserId], references: [userId], onDelete: Cascade)
+
   @@map("character")
 }
 
 model CharacterPlayer {
   characterPlayerId Int @id @default(autoincrement()) @map("character_player_id")
-  CharacterId Int @map("character_id")
-  playerId Int @map("player_id")
-  upgradeLevel Int @default(0) @map("upgrade_level")
-  playerCount Int @default(0) @map("player_count")
+  CharacterId       Int @map("character_id")
+  playerId          Int @map("player_id")
+  upgradeLevel      Int @default(0) @map("upgrade_level")
+  playerCount       Int @default(0) @map("player_count")
 
-  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  Character     Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  RosterPlayer1 Roster?   @relation("CharacterPlayerId1")
+  RosterPlayer2 Roster?   @relation("CharacterPlayerId2")
+  RosterPlayer3 Roster?   @relation("CharacterPlayerId3")
+
   @@map("character_player")
 }
 
 model Roster {
-  rosterId Int @id @default(autoincrement()) @map("roster_id")
-  CharacterId Int @unique @map("character_id")
-  characterPlayerId1 Int @map("character_player_id1")
-  characterPlayerId2 Int @map("character_player_id2")
-  characterPlayerId3 Int @map("character_player_id3")
+  rosterId           Int @id @default(autoincrement()) @map("roster_id")
+  CharacterId        Int @unique @map("character_id")
+  CharacterPlayerId1 Int @unique @map("character_player_id1")
+  CharacterPlayerId2 Int @unique @map("character_player_id2")
+  CharacterPlayerId3 Int @unique @map("character_player_id3")
 
-  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  Character        Character       @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  CharacterPlayer1 CharacterPlayer @relation("CharacterPlayerId1", fields: [CharacterPlayerId1], references: [characterPlayerId], onDelete: Restrict)
+  CharacterPlayer2 CharacterPlayer @relation("CharacterPlayerId2", fields: [CharacterPlayerId2], references: [characterPlayerId], onDelete: Restrict)
+  CharacterPlayer3 CharacterPlayer @relation("CharacterPlayerId3", fields: [CharacterPlayerId3], references: [characterPlayerId], onDelete: Restrict)
+
   @@map("roster")
 }
 
 model GameRecord {
-  gameRecordId Int @id @default(autoincrement()) @map("game_record_id")
-  characterId1 Int @map("character_id1")
-  characterId2 Int @map("character_id2")
-  characterId1Win Boolean @default(false) @map("character_id1_win")
-  characterId1Draw Boolean @default(false) @map("character_id1_Draw")
-  characterId1Lose Boolean @default(false) @map("character_id1_lose")
-  characterId2Win Boolean @default(false) @map("character_id2_win")
-  characterId2Draw Boolean @default(false) @map("character_id2_Draw")
-  characterId2Lose Boolean @default(false) @map("character_id2_lose")
-  characterId1Score Int @default(0) @map("character_id1_score")
-  characterId2Score Int @default(0) @map("character_id2_score")
+  gameRecordId      Int     @id @default(autoincrement()) @map("game_record_id")
+  characterId1      Int     @map("character_id1")
+  characterId2      Int     @map("character_id2")
+  characterId1Win   Boolean @default(false) @map("character_id1_win")
+  characterId1Draw  Boolean @default(false) @map("character_id1_Draw")
+  characterId1Lose  Boolean @default(false) @map("character_id1_lose")
+  characterId2Win   Boolean @default(false) @map("character_id2_win")
+  characterId2Draw  Boolean @default(false) @map("character_id2_Draw")
+  characterId2Lose  Boolean @default(false) @map("character_id2_lose")
+  characterId1Score Int     @default(0) @map("character_id1_score")
+  characterId2Score Int     @default(0) @map("character_id2_score")
+
   @@map("game_record")
 }
 
 model Player {
-  playerId Int @map("player_id")
-  upgradeLevel Int @map("upgrade_level") 
-  playerName String @map("player_name")
-  playerSpeed Int @map("player_speed")
-  goalDecision Int @map("goal_decision")
-  shootPower Int @map("shoot_power")
-  defence Int @map("defence")
-  stamina Int @map("stamina")
-  rarity Int @map("rarity")
-  value Int @map("value")
+  playerId     Int    @map("player_id")
+  upgradeLevel Int    @map("upgrade_level")
+  playerName   String @map("player_name")
+  playerSpeed  Int    @map("player_speed")
+  goalDecision Int    @map("goal_decision")
+  shootPower   Int    @map("shoot_power")
+  defence      Int    @map("defence")
+  stamina      Int    @map("stamina")
+  rarity       Int    @map("rarity")
+  value        Int    @map("value")
 
   @@id([playerId, upgradeLevel])
   @@map("player")
