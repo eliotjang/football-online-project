@@ -46,7 +46,6 @@ router.get('/ranking', async (req, res, next) => {
       // 랭크 풋살 게임 API 기능 구현 시 추가 예정
       /* for (const record of gameRecord1) {
         record.characterId1Win === true && wins++;
-        record.characterId1Draw === true && draws++;
         record.characterId1Lose === true && losses++;
       }
       for (const record of gameRecord2) {
