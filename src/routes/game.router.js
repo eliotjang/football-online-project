@@ -24,7 +24,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         });
 
         if (!teamBCharacter) { //상대방 캐릭터 존재 여부 확인
-            return res.status(400).json({ Message: '유효하지 않은 캐릭터 아이디입니다.' });
+            return res.status(400).json({ message: '유효하지 않은 캐릭터 아이디입니다.' });
         }
 
         const teamARoster = await prisma.roster.findFirst({//A,B팀 출전 명단 조회
@@ -40,11 +40,11 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         });
 
         if(!teamARoster){
-            return res.status(400).json({Msaage: "A팀 로스터에 등록된 선수가 없습니다."})
+            return res.status(400).json({masaage: `${teamACharacter.name}팀 로스터에 등록된 선수가 없습니다.`})
         }
 
         if(!teamBRoster){
-            return res.status(400).json({Msaage: "B팀 로스터에 등록된 선수가 없습니다."})
+            return res.status(400).json({masaage: `${teamBCharacter.name}팀 로스터에 등록된 선수가 없습니다.`})
         }
 
         const teamARosterList = [ //A,B팀 보유 선수 아이디 배열로 저장
@@ -133,7 +133,6 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         let teamAScore = 0;
         let teamBScore = 0;
         const gameLog = [];
-        console.log("A팀 스탯 :",teamAStat , ",B팀 스탯 :", teamBStat)
 
         
         currentTime += Math.floor(Math.random() * 90);
@@ -157,14 +156,13 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
                 })
             }
             currentTime += Math.floor(Math.random() * 45); //경기가 지난 시간 랜덤으로 결정
-            console.log(teamAScore, ' : ', teamBScore);
         }
 
         if (teamAScore > teamBScore) {
             return res
                 .status(200)
                 .json({
-                    Message: `유저 ${teamACharacter.name} 승리!`,
+                    message: `유저 ${teamACharacter.name} 승리!`,
                     result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
                     gameLog : gameLog
                 });
@@ -172,7 +170,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
             return res
                 .status(200)
                 .json({
-                    Message: `유저 ${teamBCharacter.name} 승리!`,
+                    message: `유저 ${teamBCharacter.name} 승리!`,
                     result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
                     gameLog : gameLog
                 });
@@ -180,7 +178,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
             return res
                 .status(200)
                 .json({
-                    Message: `무승부!`,
+                    message: `무승부!`,
                     result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
                     gameLog : gameLog
                 });
