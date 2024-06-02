@@ -6,6 +6,7 @@ import RosterRouter from '../src/routes/roster.router.js';
 import RankingSystemRouter from '../src/routes/ranking-system.router.js';
 import DrawRouter from './routes/draw.router.js';
 import GameRouter from './routes/game.router.js';
+import UpgradeRouter from './routes/upgrade.router.js';
 import RankGameRouter from './routes/rank-game.router.js';
 import CharacterPlayerRelease from './routes/character-player-release.js';
 import PlayerRouter from './routes/player.router.js';
@@ -30,6 +31,7 @@ app.use('/api', [
   DrawRouter,
   GameRouter,
   RankingSystemRouter,
+  UpgradeRouter,
   RankGameRouter,
   CharacterPlayerRelease,
   PlayerRouter,
