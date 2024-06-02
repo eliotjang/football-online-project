@@ -8,6 +8,7 @@ import DrawRouter from './routes/draw.router.js';
 import GameRouter from './routes/game.router.js';
 import RankGameRouter from './routes/rank-game.router.js';
 import PlayerRouter from './routes/player.router.js';
+import TransferRouter from './routes/transfer.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -31,6 +32,7 @@ app.use('/api', [
   RankingSystemRouter,
   RankGameRouter,
   PlayerRouter,
+  TransferRouter,
 ]);
 app.use(errorHandlingMiddleware);
 
