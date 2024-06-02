@@ -18,10 +18,11 @@ model User {
 }
 
 model Character {
-  characterId Int    @id @default(autoincrement()) @map("character_id")
-  UserId      Int    @unique @map("user_id")
-  name        String @unique @map("name")
-  cash        Int    @default(10000) @map("cash")
+  characterId  Int    @id @default(autoincrement()) @map("character_id")
+  UserId       Int    @unique @map("user_id")
+  name         String @unique @map("name")
+  cash         Int    @default(10000) @map("cash")
+  releaseCount Int    @default(0) @map("release_count")
 
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?

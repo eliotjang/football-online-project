@@ -32,6 +32,7 @@ router.get('/players', authMiddleware, async (req, res, next) => {
         })
 
         const playerData = {
+            characterPlayerId: p.characterPlayerId,
             playerId: p.playerId,
             playerName: player.playerName,
             upgradeLevel: p.upgradeLevel,
@@ -40,7 +41,7 @@ router.get('/players', authMiddleware, async (req, res, next) => {
         characterPlayersData.push(playerData);
     }
 
-    return res.status(200).json({ message: '현재 캐릭터가 보유한 선수 목록입니다.', characterPlayersData});
+    return res.status(200).json({ message: '현재 캐릭터가 보유한 선수 목록입니다.', data: characterPlayersData});
   } catch (err) {
     next(err);
   }
