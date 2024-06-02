@@ -28,7 +28,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       return res.status(400).json({ Message: '보유 캐쉬가 부족합니다.' });
     }
 
-    const tier0 = 0.05; //티어에 따른 확률 
+    const tier0 = 0.05; //티어에 따른 확률
     const tier1 = 0.1;
     const tier2 = 0.15;
     const tier3 = 0.2;
@@ -38,17 +38,17 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     let rarity = 0;
 
     const randomNumRarity = Math.random(); //희귀 등급 뽑기
-    if(randomNumRarity < tier0){
+    if (randomNumRarity < tier0) {
       rarity = 0;
-    }else if(randomNumRarity < tier0 + tier1){
+    } else if (randomNumRarity < tier0 + tier1) {
       rarity = 1;
-    }else if(randomNumRarity < tier0 + tier1 + tier2 ){
+    } else if (randomNumRarity < tier0 + tier1 + tier2) {
       rarity = 2;
-    }else if(randomNumRarity < tier0 + tier1 + tier2 + tier3 ){
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3) {
       rarity = 3;
-    }else if(randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4){
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4) {
       rarity = 4;
-    }else if(randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4 + tier5){
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4 + tier5) {
       rarity = 5;
     }
 
@@ -56,7 +56,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       //뽑기 선수 리스트 조회
       where: {
         rarity: rarity,
-        upgradeLevel: 0
+        upgradeLevel: 0,
       },
     });
 
