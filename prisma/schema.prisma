@@ -92,3 +92,16 @@ model Player {
   @@id([playerId, upgradeLevel])
   @@map("player")
 }
+
+model PlayerTransfer {
+  playerTransferId      Int      @id @unique @default(autoincrement()) @map("player_transfer_id")
+  characterId1          Int      @map("character_id1")
+  characterId2          Int      @map("character_id2")
+  character1PlayerId    Int      @map("character1_player_id")
+  character1Cash        Int      @map("character1_cash")
+  character2PlayerId    Int?     @map("character2_player_id")
+  character2Cash        Int?     @map("character2_cash")
+  status                String   @default("continue") @map("status")
+
+  @@map("player_transfer")
+}
