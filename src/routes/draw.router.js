@@ -15,6 +15,17 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       where: { UserId: userId },
     });
 
+    // 선수 방출횟수 확인
+    const releaseCount = await prisma.character.findUnique({
+      where: { UserId: userId },
+      select: { releaseCount: true },
+    });
+
+    if (character.cash + releaseCount * 1000 < 1000 && releaseCount > 0) {
+      // 선수 방출횟수가 있는 상태에서 캐시 보유 상태 검사
+      return res.status(400).json({ Message: '선수 방출 패널티 부여로 인한 보유 캐쉬가 부족합니다.' });
+    }
+
     if (character.cash < 1000) {
       //캐시 보유 1000원 이상인지 검사
       return res.status(400).json({ Message: '보유 캐쉬가 부족합니다.' });
@@ -40,13 +51,18 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       },
     });
 
+    let price = 1000;
+    if (releaseCount > 0) {
+      price += 1000;
+    }
+
     const [characterCashUpdate, playerUpdate] = await prisma.$transaction(
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
           where: { UserId: userId },
           data: {
-            cash: character.cash - 1000,
+            cash: character.cash - price,
           },
         });
 
@@ -83,7 +99,18 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       }
     );
 
-    return res.status(200).json({ Message: radomPlayer });
+    if (releaseCount > 0) {
+      return res.status(200).json({
+        message: '뽑은 선수 데이터입니다.',
+        addMessage: '선수 방출 패널티로 뽑기에 1000원이 추가 소요되었습니다.',
+        data: radomPlayer,
+      });
+    } else {
+      return res.status(200).json({
+        message: '뽑은 선수 데이터입니다.',
+        data: radomPlayer,
+      });
+    }
   } catch (err) {
     next(err);
   }
