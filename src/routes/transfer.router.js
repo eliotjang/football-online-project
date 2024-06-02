@@ -33,70 +33,54 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 
 // 이적 확인 API
 router.get('/transfer', authMiddleware, async (req, res, next) => {
-    try {
-        const {userId} = req.user;
-        const requestTransfer = await prisma.playerTransfer.findMany({
-            where: {
-                characterId1: userId,
-                status: 'continue',
-            }
-        })
+  try {
+    const { userId } = req.user;
+    const requestTransfer = await prisma.playerTransfer.findMany({
+      where: {
+        characterId1: userId,
+        status: 'continue',
+      },
+    });
 
-        const getTransfer = await prisma.playerTransfer.findMany({
-            where: {
-                characterId2: userId,
-                status: 'continue',
-            }
-        })
+    const getTransfer = await prisma.playerTransfer.findMany({
+      where: {
+        characterId2: userId,
+        status: 'continue',
+      },
+    });
 
-        const endTransfer = await prisma.playerTransfer.findMany({
-            where: {
-                OR: [
-                    {characterId2: userId},
-                    {characterId1: userId},
-                ],
-                status: {not: "continue"},
-            },
-            
-        })
+    const endTransfer = await prisma.playerTransfer.findMany({
+      where: {
+        OR: [{ characterId2: userId }, { characterId1: userId }],
+        status: { not: 'continue' },
+      },
+    });
 
-        return res.status(200).json({message: '이적 리스트입니다', requestTransfer, getTransfer, endTransfer})
-    } catch(err) {
-        next(err);
-    }
-})
+    return res.status(200).json({ message: '이적 리스트입니다', requestTransfer, getTransfer, endTransfer });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 이적 대상자의 거절/후제시 API
 router.patch('/transfer/:playerTransferId', authMiddleware, async (req, res, next) => {
-    try {
-        const {userId} = req.user;
-        const {response} = req.body;
-        const {playerTransferId} = req.params;
+  try {
+    const { userId } = req.user;
+    const { response } = req.body;
+    const { playerTransferId } = req.params;
 
-        if (response === "refuse") {
-            await prisma.playerTransfer.update({
-                where: {playerTransferId: +playerTransferId},
-                data: {
-                    status: `${userId}_refuse`,
-                }
-            })
-            return res.status(200).json({message: '이적을 거절했습니다'})
-        }
-
-        if (response === "success") {}
-
-
-
-
-
-    } catch(err) {
-        next(err);
+    if (response === 'refuse') {
+      await prisma.playerTransfer.update({
+        where: { playerTransferId: +playerTransferId },
+        data: {
+          status: `${userId}_refuse`,
+        },
+      });
+      return res.status(200).json({ message: '이적을 거절했습니다' });
     }
-})
-
-
-
-
-
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;
