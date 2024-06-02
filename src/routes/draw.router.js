@@ -16,10 +16,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     });
 
     // 선수 방출횟수 확인
-    const releaseCount = await prisma.character.findUnique({
-      where: { UserId: userId },
-      select: { releaseCount: true },
-    });
+    let releaseCount = character.releaseCount;
 
     if (character.cash + releaseCount * 1000 < 1000 && releaseCount > 0) {
       // 선수 방출횟수가 있는 상태에서 캐시 보유 상태 검사
@@ -51,10 +48,12 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       },
     });
 
+    // 선수 방출 패널티 금액 추가
     let price = 1000;
     if (releaseCount > 0) {
       price += 1000;
     }
+    console.log(releaseCount);
 
     const [characterCashUpdate, playerUpdate] = await prisma.$transaction(
       async (tx) => {
@@ -100,6 +99,14 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     );
 
     if (releaseCount > 0) {
+      // 선수 방출 패널티 횟수 차감
+      await prisma.character.update({
+        where: { UserId: userId },
+        data: {
+          releaseCount: { decrement: 1 },
+        },
+      });
+
       return res.status(200).json({
         message: '뽑은 선수 데이터입니다.',
         addMessage: '선수 방출 패널티로 뽑기에 1000원이 추가 소요되었습니다.',
