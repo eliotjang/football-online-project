@@ -14,23 +14,30 @@ router.get('/players', authMiddleware, async (req, res, next) => {
         UserId: +userId,
       },
     });
-
+    
+    
     const characterPlayers = await prisma.characterPlayer.findMany({
-      where: {
-        CharacterId: character.characterId,
-      },
+        where: {
+            CharacterId: character.characterId,
+        },
     });
-
+    
     const characterPlayersData = [];
     for (const p of characterPlayers) {
         const player = await prisma.player.findFirst({
             where: {
                 playerId: p.playerId,
                 upgradeLevel: p.upgradeLevel,
-            }
+            },
         })
 
-        characterPlayersData.push(player);
+        const playerData = {
+            playerId: p.playerId,
+            playerName: player.playerName,
+            upgradeLevel: p.upgradeLevel,
+            playerCount: p.playerCount,
+        };
+        characterPlayersData.push(playerData);
     }
 
     return res.status(200).json({ message: '현재 캐릭터가 보유한 선수 목록입니다.', characterPlayersData});
