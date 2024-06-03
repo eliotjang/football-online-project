@@ -149,6 +149,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
     currentTime += Math.floor(Math.random() * 90);
     while (currentTime <= maxTime) {
       const addScoreTeam = Math.random() * maxStat; //경기가 아직 진행중이라면 골 넣을 팀 랜덤으로 정함
+      const addScorePlayer = Math.floor(Math.random() * 3);
 
       if (addScoreTeam < teamAStat) {
         //A팀이 이길 경우
@@ -156,6 +157,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamACharacter.name} 팀`,
+          goalPlayer : teamAPlayerInfo[addScorePlayer].playerName
         });
       } else {
         //B팀이 이길 경우
@@ -163,6 +165,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamBCharacter.name} 팀`,
+          goalPlayer : teamBPlayerInfo[addScorePlayer].playerName
         });
       }
       currentTime += Math.floor(Math.random() * 45); //경기가 지난 시간 랜덤으로 결정
