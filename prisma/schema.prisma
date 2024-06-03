@@ -8,9 +8,9 @@ datasource db {
 }
 
 model Account {
-  accountId   Int    @id @default(autoincrement()) @map("account_id")
-  email    String @unique @map("email")
-  password String @map("password")
+  accountId Int    @id @default(autoincrement()) @map("account_id")
+  email     String @unique @map("email")
+  password  String @map("password")
 
   Character Character?
 
@@ -40,7 +40,7 @@ model CharacterPlayer {
   upgradeLevel      Int @default(0) @map("upgrade_level")
   playerCount       Int @default(0) @map("player_count")
 
-  Character     Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
 
   @@map("character_player")
 }
@@ -55,7 +55,7 @@ model Roster {
   roster3PlayerId     Int @map("roster3_player_id")
   roster3UpgradeLevel Int @map("roster3_upgrade_level")
 
-  Character        Character       @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
 
   @@map("roster")
 }
