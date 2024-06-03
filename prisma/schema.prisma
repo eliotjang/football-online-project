@@ -97,7 +97,7 @@ model TransferMarket {
   sellerId          Int      @map("seller_id")
   sellPlayerId      Int      @map("sell_player_id")
   sellCash          Int      @map("sell_cash")
-  buyerId           Int?      @map("buyer_id")
+  buyerId           Int?     @map("buyer_id")
   status            String   @default("continue") @map("status")
 
   @@map("transfer_market")

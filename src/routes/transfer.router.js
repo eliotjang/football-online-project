@@ -13,12 +13,12 @@ const transferSchema = Joi.object({
 // 이적 신청 API
 router.post('/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const { accountId } = req.account;
     const validation = await transferSchema.validateAsync(req.body);
     const { sellPlayerId, sellCash } = validation;
 
     const character = await prisma.character.findFirst({
-      where: {UserId: userId}
+      where: {AccountId: accountId}
     })
 
     const characterPlayer = await prisma.characterPlayer.findFirst({
@@ -37,6 +37,13 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
         sellPlayerId,
         sellCash,
       },
+      select: {
+        transferMarketId: true,
+        sellerId: true,
+        sellPlayerId: true,
+        sellCash: true,
+        status: true,
+      }
     });
 
     return res.status(201).json({ message: '이적 신청이 완료되었습니다.', data: transferMarket });
@@ -45,21 +52,20 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
   }
 });
 
-// 이적 확인 API
+// 이적 시장 확인 API
 router.get('/transfer', authMiddleware, async (req, res, next) => {
   try {
     const transferMarket = await prisma.transferMarket.findMany({
-      where: {status: 'continue'}
+      where: {status: 'continue'},
+      select: {
+        transferMarketId: true,
+        sellerId: true,
+        sellPlayerId: true,
+        sellCash: true,
+      }
     })
 
-
-
-
-
-
-    
-
-    return res.status(200).json({ message: '이적 리스트입니다', requestTransfer, getTransfer, endTransfer });
+    return res.status(200).json({ message: '이적 시장 목록입니다', requestTransfer, getTransfer, endTransfer });
   } catch (err) {
     next(err);
   }
