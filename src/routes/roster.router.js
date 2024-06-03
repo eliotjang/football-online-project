@@ -63,7 +63,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       async (tx) => {
         // 출전 선수 캐릭터 보유 선수 명단에서 감소
         for (const rosterPlayerCharacterId of rosterPlayerCharacterIds) {
-          const deletedCharacterPlayer = await tx.characterPlayer.delete({
+          const deletedCharacterPlayer = await tx.characterPlayer.deleteMany({
             where: { characterPlayerId: rosterPlayerCharacterId, playerCount: 1 },
           });
           if (!deletedCharacterPlayer) {
