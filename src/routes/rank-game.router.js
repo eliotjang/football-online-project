@@ -199,17 +199,20 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
     currentTime += Math.floor(Math.random() * 90);
     while (currentTime <= maxTime) {
       const randomValue = Math.random() * maxScore;
+      const addScorePlayer = Math.floor(Math.random() * 3);
       if (randomValue < myNormalizationScore) {
         myGoal++;
         gameLog.push({
           time: `${currentTime}분`,
           team: `${myCharacter.name} 팀`,
+          goalPlayer : myPlayers[addScorePlayer].playerName
         });
       } else {
         targetGoal++;
         gameLog.push({
           time: `${currentTime}분`,
           team: `${targetData.name} 팀`,
+          goalPlayer : targetPlayers[addScorePlayer].playerName
         });
       }
       currentTime += Math.floor(Math.random() * 45);
