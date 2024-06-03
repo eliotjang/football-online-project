@@ -43,7 +43,7 @@ router.get('/ranking', async (req, res, next) => {
       }
 
       const winRate = Math.round((wins / (wins + losses + draws)) * 100) + '%';
-      const gameScore = 1000 + 10 * wins - 10 * losses;
+      const gameScore = character.rankScore;
 
       const data = {
         rank: 0,

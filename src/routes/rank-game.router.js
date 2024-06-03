@@ -25,32 +25,8 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
     for (const character of characters) {
       const { characterId } = character;
 
-      const gameRecord1 = await prisma.gameRecord.findMany({
-        where: {
-          characterId1: characterId,
-        },
-      });
-      const gameRecord2 = await prisma.gameRecord.findMany({
-        where: {
-          characterId2: characterId,
-        },
-      });
-
-      let wins = 0;
-      let draws = 0;
-      let losses = 0;
-
-      for (const record of gameRecord1) {
-        record.characterId1Win === true && wins++;
-        record.characterId1Lose === true && losses++;
-      }
-      for (const record of gameRecord2) {
-        record.characterId2Win === true && wins++;
-        record.characterId2Draw === true && draws++;
-        record.characterId2Lose === true && losses++;
-      }
-
-      const gameScore = 1000 + 10 * wins - 10 * losses;
+      const gameScore = character.rankScore;
+      console.log(gameScore);
 
       // 사용자인 경우 제외
       if (myCharacter.characterId === character.characterId) {
@@ -219,7 +195,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       characterId1Win = true;
       characterId2Lose = true;
 
-      await prisma.gameRecord.create({
+      /*       await prisma.gameRecord.create({
         data: {
           characterId1: myCharacter.characterId,
           characterId2: targetData.characterId,
@@ -230,7 +206,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
           characterId2Draw,
           characterId2Lose,
         },
-      });
+      }); */
 
       return res.status(200).json({
         message: `${myCharacter.name} 팀이 승리했습니다. 축하드립니다!`,
@@ -243,7 +219,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       characterId1Lose = true;
       characterId2Win = true;
 
-      await prisma.gameRecord.create({
+      /*       await prisma.gameRecord.create({
         data: {
           characterId1: myCharacter.characterId,
           characterId2: targetData.characterId,
@@ -254,7 +230,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
           characterId2Draw,
           characterId2Lose,
         },
-      });
+      }); */
 
       return res.status(200).json({
         message: `${myCharacter.name} 팀이 패배했습니다. 좋은 선수로 구성해보세요!`,
@@ -267,7 +243,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       characterId1Draw = true;
       characterId2Draw = true;
 
-      await prisma.gameRecord.create({
+      /*       await prisma.gameRecord.create({
         data: {
           characterId1: myCharacter.characterId,
           characterId2: targetData.characterId,
@@ -278,7 +254,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
           characterId2Draw,
           characterId2Lose,
         },
-      });
+      }); */
 
       return res.status(200).json({
         message: `${myCharacter.name} 팀이 비겼습니다. 치열했네요!`,
