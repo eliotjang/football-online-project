@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.delete('/players/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const { characterPlayerId } = req.params;
     const character = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
     });
     const characterPlayers = await prisma.characterPlayer.findMany({
       where: { CharacterId: character.characterId },
@@ -41,7 +41,7 @@ router.delete('/players/:characterPlayerId', authMiddleware, async (req, res, ne
 
     // 선수 방출 패널티 부여
     await prisma.character.update({
-      where: { UserId: userId },
+      where: { characterId },
       data: {
         releaseCount: { increment: 1 },
       },
@@ -56,7 +56,7 @@ router.delete('/players/:characterPlayerId', authMiddleware, async (req, res, ne
       },
     });
     await prisma.character.update({
-      where: { UserId: userId },
+      where: { characterId },
       data: {
         cash: { increment: player.value },
       },
@@ -64,7 +64,7 @@ router.delete('/players/:characterPlayerId', authMiddleware, async (req, res, ne
 
     // 변경 금액 확인
     const currentCash = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
       select: { cash: true },
     });
 

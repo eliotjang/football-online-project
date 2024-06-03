@@ -25,14 +25,13 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
     ) {
       return res.status(409).json({ errorMessage: '선수 아이디가 중복되었습니다.' });
     }
-    // ##################################################################################
-    // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
-    const { userId } = req.user;
+
+    const { characterId } = req.character;
     const character = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
       include: { CharacterPlayer: true, Roster: true },
     });
-    // ##################################################################################
+
     const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
     const playerIds = [];
     for (const characterPlayerId of characterPlayerIds) {
@@ -122,14 +121,11 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
 // 출전 선수 명단 제거 API (JWT 인증)
 router.delete('/roster', authMiddleware, async (req, res, next) => {
   try {
-    // ##################################################################################
-    // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const character = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
       include: { CharacterPlayer: true, Roster: true },
     });
-    // ##################################################################################
 
     if (!character.Roster) {
       return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
@@ -166,14 +162,11 @@ router.delete('/roster', authMiddleware, async (req, res, next) => {
 // 출전 선수 명단 조회 API (JWT 인증)
 router.get('/roster', authMiddleware, async (req, res, next) => {
   try {
-    // ##################################################################################
-    // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const character = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
       include: { CharacterPlayer: true, Roster: true },
     });
-    // ##################################################################################
 
     if (!character.Roster) {
       return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });

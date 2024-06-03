@@ -40,10 +40,10 @@ router.post('/sign-up', async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 유저, 캐릭터 생성 트랜잭션
+    // 계정, 캐릭터 생성 트랜잭션
     const [account, character] = await prisma.$transaction(
       async (tx) => {
-        const account = await prisma.account.create({
+        const account = await tx.account.create({
           data: {
             email,
             password: hashedPassword,
@@ -54,7 +54,7 @@ router.post('/sign-up', async (req, res, next) => {
           },
         });
 
-        const character = await prisma.character.create({
+        const character = await tx.character.create({
           data: {
             AccountId: account.accountId,
             name,
@@ -72,7 +72,9 @@ router.post('/sign-up', async (req, res, next) => {
       }
     );
 
-    return res.status(201).json({ message: '회원가입이 완료되었습니다.', userData: account, characterData: character });
+    return res
+      .status(201)
+      .json({ message: '회원가입이 완료되었습니다.', accountData: account, characterData: character });
   } catch (err) {
     next(err);
   }
