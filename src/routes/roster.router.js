@@ -3,7 +3,7 @@ import Joi from 'joi';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import { prisma } from '../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
-import Futsal from '../utils/functions.js';
+import Futsal from '../controllers/functions.js';
 
 const router = express.Router();
 
