@@ -9,7 +9,7 @@ const upgradeLevelSchema = Joi.object({
   upgradeLevel: Joi.number().integer().min(0).max(5).required(),
 });
 
-// 보유 선수 목록 조회 API
+// 보유 선수 목록 조회 (본인 팀) API (JWT 인증)
 router.get('/players', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
@@ -46,6 +46,50 @@ router.get('/players', authMiddleware, async (req, res, next) => {
     }
 
     return res.status(200).json({ message: '현재 캐릭터가 보유한 선수 목록입니다.', data: characterPlayersData });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 보유 선수 목록 조회 (타 팀) API
+router.get('/player/:characterId', async (req, res, next) => {
+  try {
+    const { characterId } = req.params;
+
+    const character = await prisma.character.findFirst({
+      where: {
+        characterId: +characterId,
+      },
+    });
+
+    const characterPlayers = await prisma.characterPlayer.findMany({
+      where: {
+        CharacterId: character.characterId,
+      },
+    });
+
+    const characterPlayersData = [];
+    for (const p of characterPlayers) {
+      const player = await prisma.player.findFirst({
+        where: {
+          playerId: p.playerId,
+          upgradeLevel: p.upgradeLevel,
+        },
+      });
+
+      const playerData = {
+        characterPlayerId: p.characterPlayerId,
+        playerId: p.playerId,
+        playerName: player.playerName,
+        upgradeLevel: p.upgradeLevel,
+        playerCount: p.playerCount,
+      };
+      characterPlayersData.push(playerData);
+    }
+
+    return res
+      .status(200)
+      .json({ message: `${character.name} 캐릭터가 보유한 선수 목록입니다.`, data: characterPlayersData });
   } catch (err) {
     next(err);
   }
