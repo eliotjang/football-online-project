@@ -101,6 +101,7 @@ model TransferMarket {
   sellCharacterPlayerUpgradeLevel   Int      @map("sell_character_player_upgrade_level")
   sellCash                          Int      @map("sell_cash")
   buyCharacterId                    Int?     @map("buy_character_id")
+  buyCharacterName                  String?  @map("buy_character_name")
   status                            String   @default("continue") @map("status")
 
   @@map("transfer_market")

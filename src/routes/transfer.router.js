@@ -96,7 +96,7 @@ router.get('/transfer', authMiddleware, async (req, res, next) => {
       },
     });
 
-    return res.status(200).json({ message: '이적 시장 목록입니다', transferMarket });
+    return res.status(200).json({ message: '이적 시장 목록입니다', data: transferMarket });
   } catch (err) {
     next(err);
   }
@@ -111,88 +111,62 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
     const transferMarket = await prisma.transferMarket.findFirst({
       where: { transferMarketId: +transferMarketId },
     });
+    
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '존재하지 않는 이적 시장입니다.' });
     }
     if (transferMarket.status === 'success') {
       return res.status(400).json({ errorMessage: '이적이 완료된 이적 시장입니다.' });
     }
+    if (characterId === transferMarket.sellCharacterId) {
+      return res.status(400).json({ errorMessage: '본인이 등록한 선수는 구매하지 못합니다' });
+    }
 
-    const character = prisma.character.findFirst({
+    const buyCharacter = await prisma.character.findFirst({
       where: { characterId },
     });
 
-    if (character.cash < transferMarket.sellCash) {
+    if (buyCharacter.cash < transferMarket.sellCash) {
       return res.status(400).json({ errorMessage: '보유하고 있는 캐시가 부족합니다.' });
     }
 
-    const [seller, buyer] = await prisma.$transaction(
+    await prisma.$transaction(
       async (tx) => {
-        const seller = await tx.character.findFirst({
-          where: { characterId: transferMarket.sellerId },
+        // 캐릭터 아이디 변경 (구매)
+        const sellCharacterPlayer = await tx.characterPlayer.findFirst({
+          where: { characterPlayerId: transferMarket.sellCharacterPlayerId },
         });
 
-        const buyer = await tx.character.findFirst({
-          where: { characterId },
-        });
-
-        // 캐릭터 아이디 변화 (거래)
-        const targetPlayer = await tx.characterPlayer.findFirst({
-          where: { characterPlayerId: transferMarket.sellPlayerId },
-        });
-
-        const buyerPlayer = await tx.characterPlayer.findFirst({
+        const buyCharacterPlayer = await tx.characterPlayer.findFirst({
           where: {
-            CharacterId: buyer.characterId,
-            playerId: targetPlayer.playerId,
+            CharacterId: characterId,
+            playerId: sellCharacterPlayer.playerId,
           },
         });
 
-        if (targetPlayer.playerCount > 1 && !buyerPlayer) {
-          // 파는 선수의 개수가 1보다 많으면서 사는 사람에게는 해당 선수가 없을 때
-          await tx.characterPlayer.update({
-            where: { characterPlayerId: transferMarket.sellPlayerId },
-            data: {
-              playerCount: { decrement: 1 },
-            },
-          });
+        if (!buyCharacterPlayer) {
           await tx.characterPlayer.create({
             data: {
-              CharacterId: buyer.characterId,
-              playerId: targetPlayer.playerId,
-              upgradeLevel: targetPlayer.upgradeLevel,
+              CharacterId: characterId,
+              playerId: sellCharacterPlayer.playerId,
+              upgradeLevel: transferMarket.sellCharacterPlayerUpgradeLevel,
               playerCount: 1,
             },
           });
-        } else if (targetPlayer.playerCount > 1 && buyerPlayer) {
-          await tx.characterPlayer.update({
-            where: { characterPlayerId: transferMarket.sellPlayerId },
-            data: {
-              playerCount: { decrement: 1 },
-            },
-          });
-
+        } else {
           await tx.characterPlayer.update({
             where: {
-              CharacterId: buyer.characterId,
-              playerId: targetPlayer.playerId,
+              characterPlayerId: buyCharacterPlayer.characterPlayerId,
             },
             data: {
               playerCount: { increment: 1 },
             },
           });
-        } else if (!(targetPlayer.playerCount > 1) && buyerPlayer) {
+        }
+
+        if (sellCharacterPlayer.playerCount === 0) {
           await tx.characterPlayer.delete({
-            where: { characterPlayerId: transferMarket.sellPlayerId },
-          });
-        } else {
-          await tx.characterPlayer.update({
-            where: {
-              characterPlayerId: transferMarket.sellPlayerId,
-            },
-            data: {
-              CharacterId: buyer.characterId,
-            },
+            where: { characterPlayerId: transferMarket.sellCharacterPlayerId },
           });
         }
 
@@ -206,22 +180,21 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
 
         // 판매한 사람 캐시 증가
         await tx.character.update({
-          where: { characterId: seller.characterId },
+          where: { characterId: transferMarket.sellCharacterId },
           data: {
             cash: { increment: transferMarket.sellCash },
           },
         });
 
-        // 이적 시장 거래 완료 표시
+        // 이적 완료 표시
         await tx.transferMarket.update({
-          where: { transferMarketId: transferMarket.transferMarketId },
+          where: { transferMarketId: +transferMarketId },
           data: {
-            buyerId: buyer.characterId,
+            buyCharacterId: buyCharacter.characterId,
+            buyCharacterName: buyCharacter.name,
             status: 'success',
           },
         });
-
-        return [seller, buyer];
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
@@ -229,9 +202,8 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
     );
 
     const changedTransferMarket = await prisma.transferMarket.findFirst({
-      where: { transferMarketId: transferMarket.transferMarketId },
+      where: { transferMarketId: +transferMarketId },
     });
-    console.log(changedTransferMarket);
 
     return res.status(200).json({ message: '이적이 성공적으로 완료되었습니다.', data: changedTransferMarket });
   } catch (err) {
