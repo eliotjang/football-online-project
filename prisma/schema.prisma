@@ -7,19 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  userId   Int    @id @default(autoincrement()) @map("user_id")
-  email    String @unique @map("email")
-  password String @map("password")
+model Account {
+  accountId Int    @id @default(autoincrement()) @map("account_id")
+  email     String @unique @map("email")
+  password  String @map("password")
 
   Character Character?
 
-  @@map("user")
+  @@map("account")
 }
 
 model Character {
   characterId  Int    @id @default(autoincrement()) @map("character_id")
-  UserId       Int    @unique @map("user_id")
+  AccountId    Int    @unique @map("account_id")
   name         String @unique @map("name")
   cash         Int    @default(10000) @map("cash")
   releaseCount Int    @default(0) @map("release_count")
@@ -27,7 +27,7 @@ model Character {
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?
 
-  User User @relation(fields: [UserId], references: [userId], onDelete: Cascade)
+  Account Account @relation(fields: [AccountId], references: [accountId], onDelete: Cascade)
 
   @@map("character")
 }

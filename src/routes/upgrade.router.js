@@ -61,14 +61,11 @@ async function addCharacterPlayer(character, playerId, upgradeLevel, prisma) {
 // 선수 강화 API 기능 구현 (JWT 인증)
 router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
-    // ##################################################################################
-    // authMiddleware에서 req.character로 캐릭터 객체를 넘겨주면 변경 필요
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const character = await prisma.character.findUnique({
-      where: { UserId: userId },
+      where: { characterId },
       include: { CharacterPlayer: true },
     });
-    // ##################################################################################
 
     const paramsValidation = await targetCharacterPlayerSchema.validateAsync(req.params);
     const { characterPlayerId: targetCharacterPlayerId } = paramsValidation;
