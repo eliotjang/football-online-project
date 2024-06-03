@@ -8,11 +8,11 @@ const router = express.Router();
 router.post('/draw', authMiddleware, async (req, res, next) => {
   // 선수 뽑기 API
   try {
-    const { userId } = req.user;
+    const { characterId } = req.character;
 
     const character = await prisma.character.findFirst({
       //캐릭터 정보 조회
-      where: { UserId: userId },
+      where: { characterId },
     });
 
     // 선수 방출횟수 확인
@@ -84,7 +84,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
-          where: { UserId: userId },
+          where: { characterId },
           data: {
             cash: character.cash - price,
           },
@@ -126,7 +126,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     if (releaseCount > 0) {
       // 선수 방출 패널티 횟수 차감
       await prisma.character.update({
-        where: { UserId: userId },
+        where: { characterId },
         data: {
           releaseCount: { decrement: 1 },
         },

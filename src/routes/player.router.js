@@ -6,20 +6,19 @@ import Joi from 'joi';
 const router = express.Router();
 
 const upgradeLevelSchema = Joi.object({
-  upgradeLevel: Joi.number().integer().min(0).max(5).required()
+  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
 });
 
 // 보유 선수 목록 조회 API
 router.get('/players', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const { characterId } = req.character;
 
     const character = await prisma.character.findFirst({
       where: {
-        UserId: +userId,
+        characterId,
       },
     });
-
 
     const characterPlayers = await prisma.characterPlayer.findMany({
       where: {
@@ -34,7 +33,7 @@ router.get('/players', authMiddleware, async (req, res, next) => {
           playerId: p.playerId,
           upgradeLevel: p.upgradeLevel,
         },
-      })
+      });
 
       const playerData = {
         characterPlayerId: p.characterPlayerId,
@@ -52,45 +51,45 @@ router.get('/players', authMiddleware, async (req, res, next) => {
   }
 });
 
-router.get("/database/players", async (req, res, next) => { // 데이터 베이스 선수 목록 조회
+router.get('/database/players', async (req, res, next) => {
+  // 데이터 베이스 선수 목록 조회
   try {
     const player = await prisma.player.findMany({
       where: {
-        upgradeLevel: 0
+        upgradeLevel: 0,
       },
       orderBy: {
-        playerId: "asc"
-      }
-    })
+        playerId: 'asc',
+      },
+    });
 
-    res.status(200).json({ player })
+    res.status(200).json({ player });
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-router.get("/database/player/:playerId", async (req, res, next) => { // 데이터 베이스 단일 선수 목록 조회
+router.get('/database/player/:playerId', async (req, res, next) => {
+  // 데이터 베이스 단일 선수 목록 조회
   try {
     const { playerId } = req.params;
     const { upgradeLevel } = await upgradeLevelSchema.validateAsync(req.body);
 
-
     const player = await prisma.player.findFirst({
       where: {
         playerId: +playerId,
-        upgradeLevel
-      }
-    })
+        upgradeLevel,
+      },
+    });
 
     if (!player) {
-      res.status(400).json({ message: "존재하지 않는 캐릭터 입니다." });
+      res.status(400).json({ message: '존재하지 않는 캐릭터 입니다.' });
     }
 
-    res.status(200).json({ player })
-
+    res.status(200).json({ player });
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 export default router;
