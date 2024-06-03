@@ -3,10 +3,11 @@ import Joi from 'joi';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import { prisma } from '../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
+import Futsal from '../utils/functions.js';
 
 const router = express.Router();
 
-// 선수 명단 유효성 검사
+// 출전 선수 명단 유효성 검사
 const rosterSchema = Joi.object({
   roster1PlayerId: Joi.number().integer().required(),
   roster1UpgradeLevel: Joi.number().integer().required(),
@@ -20,14 +21,8 @@ const rosterSchema = Joi.object({
 router.post('/roster', authMiddleware, async (req, res, next) => {
   try {
     const validaion = await rosterSchema.validateAsync(req.body);
-    const {
-      roster1PlayerId,
-      roster1UpgradeLevel,
-      roster2PlayerId,
-      roster2UpgradeLevel,
-      roster3PlayerId,
-      roster3UpgradeLevel,
-    } = validaion;
+    const { roster1PlayerId, roster2PlayerId, roster3PlayerId } = validaion;
+
     if (
       roster1PlayerId === roster2PlayerId ||
       roster1PlayerId === roster3PlayerId ||
@@ -42,106 +37,39 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       include: { CharacterPlayer: true, Roster: true },
     });
 
-    const rosterPlayers = [
-      [roster1PlayerId, roster1UpgradeLevel],
-      [roster2PlayerId, roster2UpgradeLevel],
-      [roster3PlayerId, roster3UpgradeLevel],
-    ];
-    const rosterPlayerCharacterIds = [];
-    for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
-      const rosterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-        return characterPlayer.playerId === rosterPlayerId && characterPlayer.upgradeLevel === rosterUpgradeLevel;
+    const requestRosterPlayers = Futsal.rosterToRosterPlayers(validaion);
+
+    for (const [playerId, upgradeLevel] of requestRosterPlayers) {
+      const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
+        return (
+          characterPlayer.playerId === playerId &&
+          characterPlayer.upgradeLevel === upgradeLevel &&
+          characterPlayer.playerCount > 0
+        );
       });
-      if (!rosterPlayer) {
+      if (!characterPlayer) {
         return res.status(400).json({ errorMessage: '선수 아이디가 유효하지 않습니다.' });
       }
-      rosterPlayerCharacterIds.push(rosterPlayer.characterPlayerId);
     }
 
     // 출전 선수 명단 생성
     const roster = await prisma.$transaction(
       async (tx) => {
-        // 출전 선수 캐릭터 보유 선수 명단에서 감소
-        for (const rosterPlayerCharacterId of rosterPlayerCharacterIds) {
-          const deletedCharacterPlayer = await tx.characterPlayer.deleteMany({
-            where: { characterPlayerId: rosterPlayerCharacterId, playerCount: 1 },
-          });
-          if (!deletedCharacterPlayer) {
-            await tx.characterPlayer.update({
-              where: { characterPlayerId: rosterPlayerCharacterId },
-              data: { playerCount: { decrement: 1 } },
-            });
+        const roster = await Futsal.addRoster(character.Roster, requestRosterPlayers, characterId, tx);
+
+        // 명단 변경 이전 출전 선수 명단 확인
+        const preRoster = Futsal.rosterToRosterPlayers(character.Roster);
+
+        // 명단 변경 이전 출전 선수가 존재 시 보유 선수 명단에 추가
+        if (preRoster) {
+          for (const [playerId, upgradeLevel] of preRoster) {
+            await Futsal.addCharacterPlayer(character.CharacterPlayer, characterId, playerId, upgradeLevel, tx);
           }
         }
 
-        let roster;
-        // 명단 변경 이전 출전 선수가 없는 경우
-        if (!character.Roster) {
-          roster = await tx.roster.create({
-            data: {
-              CharacterId: character.characterId,
-              roster1PlayerId,
-              roster1UpgradeLevel,
-              roster2PlayerId,
-              roster2UpgradeLevel,
-              roster3PlayerId,
-              roster3UpgradeLevel,
-            },
-          });
-        }
-        // 명단 변경 이전 출전 선수가 있는 경우
-        else {
-          roster = await tx.roster.update({
-            where: { CharacterId: character.characterId },
-            data: {
-              roster1PlayerId,
-              roster1UpgradeLevel,
-              roster2PlayerId,
-              roster2UpgradeLevel,
-              roster3PlayerId,
-              roster3UpgradeLevel,
-            },
-          });
-          // 명단 변경 이전 출전 선수 캐릭터 보유 선수 명단에 추가
-          const {
-            roster1PlayerId: preRoster1PlayerId,
-            roster1UpgradeLevel: preRoster1UpgradeLevel,
-            roster2PlayerId: preRoster2PlayerId,
-            roster2UpgradeLevel: preRoster2UpgradeLevel,
-            roster3PlayerId: preRoster3PlayerId,
-            roster3UpgradeLevel: preRoster3UpgradeLevel,
-          } = character.Roster;
-          const preRoster = [
-            [preRoster1PlayerId, preRoster1UpgradeLevel],
-            [preRoster2PlayerId, preRoster2UpgradeLevel],
-            [preRoster3PlayerId, preRoster3UpgradeLevel],
-          ];
-
-          for (const [preRosterPlayerId, preRosterUpgradeLevel] of preRoster) {
-            const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-              return (
-                characterPlayer.playerId === preRosterPlayerId && characterPlayer.upgradeLevel === preRosterUpgradeLevel
-              );
-            });
-            if (!characterPlayer) {
-              roster = await tx.characterPlayer.create({
-                data: {
-                  CharacterId: character.characterId,
-                  roster1PlayerId: preRoster1PlayerId,
-                  roster1UpgradeLevel: preRoster1UpgradeLevel,
-                  roster2PlayerId: preRoster2PlayerId,
-                  roster2UpgradeLevel: preRoster2UpgradeLevel,
-                  roster3PlayerId: preRoster3PlayerId,
-                  roster3UpgradeLevel: preRoster3UpgradeLevel,
-                },
-              });
-            } else {
-              await tx.characterPlayer.update({
-                where: { characterPlayerId: characterPlayer.characterPlayerId },
-                data: { playerCount: { increment: 1 } },
-              });
-            }
-          }
+        // 출전 선수는 캐릭터 보유 선수 명단에서 감소
+        for (const [playerId, upgradeLevel] of requestRosterPlayers) {
+          await Futsal.removeCharacterPlayer(character.CharacterPlayer, playerId, upgradeLevel, tx);
         }
 
         return roster;
@@ -179,48 +107,22 @@ router.delete('/roster', authMiddleware, async (req, res, next) => {
     if (!character.Roster) {
       return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
     }
-
-    const {
-      roster1PlayerId,
-      roster1UpgradeLevel,
-      roster2PlayerId,
-      roster2UpgradeLevel,
-      roster3PlayerId,
-      roster3UpgradeLevel,
-    } = character.Roster;
-
-    const rosterPlayers = [
-      [roster1PlayerId, roster1UpgradeLevel],
-      [roster2PlayerId, roster2UpgradeLevel],
-      [roster3PlayerId, roster3UpgradeLevel],
-    ];
-
+    // 출전 선수 명단을 제거하고 기존 출전 선수들을 보유 선수 명단에 추가
     await prisma.$transaction(
       async (tx) => {
-        await tx.roster.delete({
-          where: { CharacterId: character.characterId },
-        });
+        // 출전 선수 명단 제거
+        const preRoster = await Futsal.removeRoster(character.Roster, characterId, tx);
+        const rosterPlayers = Futsal.rosterToRosterPlayers(preRoster);
 
-        // 캐릭터 보유 선수 명단에 추가 (playerCount + 1)
+        // 캐릭터 보유 선수 명단에 추가
         for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
-          const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-            return characterPlayer.playerId === rosterPlayerId && characterPlayer.upgradeLevel === rosterUpgradeLevel;
-          });
-          if (!characterPlayer) {
-            await tx.characterPlayer.create({
-              data: {
-                CharacterId: character.characterId,
-                playerId: rosterPlayerId,
-                upgradeLevel: rosterUpgradeLevel,
-                playerCount: 1,
-              },
-            });
-          } else {
-            await tx.characterPlayer.update({
-              where: { characterPlayerId: characterPlayer.characterPlayerId },
-              data: { playerCount: { increment: 1 } },
-            });
-          }
+          await Futsal.addCharacterPlayer(
+            character.CharacterPlayer,
+            characterId,
+            rosterPlayerId,
+            rosterUpgradeLevel,
+            tx
+          );
         }
       },
       {
@@ -247,20 +149,7 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
     }
 
-    const {
-      roster1PlayerId,
-      roster1UpgradeLevel,
-      roster2PlayerId,
-      roster2UpgradeLevel,
-      roster3PlayerId,
-      roster3UpgradeLevel,
-    } = character.Roster;
-
-    const rosterPlayers = [
-      [roster1PlayerId, roster1UpgradeLevel],
-      [roster2PlayerId, roster2UpgradeLevel],
-      [roster3PlayerId, roster3UpgradeLevel],
-    ];
+    const rosterPlayers = Futsal.rosterToRosterPlayers(character.Roster);
     const players = [];
 
     for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
@@ -299,20 +188,7 @@ router.get('/roster/:characterId', async (req, res, next) => {
       return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
     }
 
-    const {
-      roster1PlayerId,
-      roster1UpgradeLevel,
-      roster2PlayerId,
-      roster2UpgradeLevel,
-      roster3PlayerId,
-      roster3UpgradeLevel,
-    } = character.Roster;
-
-    const rosterPlayers = [
-      [roster1PlayerId, roster1UpgradeLevel],
-      [roster2PlayerId, roster2UpgradeLevel],
-      [roster3PlayerId, roster3UpgradeLevel],
-    ];
+    const rosterPlayers = Futsal.rosterToRosterPlayers(character.Roster);
     const players = [];
 
     for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
