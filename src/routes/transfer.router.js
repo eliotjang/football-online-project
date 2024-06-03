@@ -10,7 +10,7 @@ const transferSchema = Joi.object({
   sellCash: Joi.number().required(),
 });
 
-// 이적 신청 API
+// 이적 시장 등록 API
 router.post('/transfer', authMiddleware, async (req, res, next) => {
   try {
     const { accountId } = req.account;
@@ -18,17 +18,17 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
     const { sellPlayerId, sellCash } = validation;
 
     const character = await prisma.character.findFirst({
-      where: {AccountId: accountId}
-    })
+      where: { AccountId: accountId },
+    });
 
     const characterPlayer = await prisma.characterPlayer.findFirst({
       where: {
         CharacterId: character.characterId,
-        characterPlayerId: sellPlayerId
-      }
-    })
+        characterPlayerId: sellPlayerId,
+      },
+    });
     if (!characterPlayer) {
-      return res.status(400).json({errorMessage: '이적 신청을 하려는 선수를 보유하고 있지 않습니다.'})
+      return res.status(400).json({ errorMessage: '이적 신청을 하려는 선수를 보유하고 있지 않습니다.' });
     }
 
     const transferMarket = await prisma.transferMarket.create({
@@ -43,7 +43,7 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
         sellPlayerId: true,
         sellCash: true,
         status: true,
-      }
+      },
     });
 
     return res.status(201).json({ message: '이적 신청이 완료되었습니다.', data: transferMarket });
@@ -56,14 +56,14 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 router.get('/transfer', authMiddleware, async (req, res, next) => {
   try {
     const transferMarket = await prisma.transferMarket.findMany({
-      where: {status: 'continue'},
+      where: { status: 'continue' },
       select: {
         transferMarketId: true,
         sellerId: true,
         sellPlayerId: true,
         sellCash: true,
-      }
-    })
+      },
+    });
 
     return res.status(200).json({ message: '이적 시장 목록입니다', requestTransfer, getTransfer, endTransfer });
   } catch (err) {
@@ -71,22 +71,46 @@ router.get('/transfer', authMiddleware, async (req, res, next) => {
   }
 });
 
-// 이적 대상자의 거절/후제시 API
-router.patch('/transfer/:playerTransferId', authMiddleware, async (req, res, next) => {
+// 이적 시장 구매 API
+router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { response } = req.body;
-    const { playerTransferId } = req.params;
+    const { transferMarketId } = req.params;
 
-    if (response === 'refuse') {
-      await prisma.playerTransfer.update({
-        where: { playerTransferId: +playerTransferId },
-        data: {
-          status: `${userId}_refuse`,
-        },
-      });
-      return res.status(200).json({ message: '이적을 거절했습니다' });
+    const transferMarket = prisma.transferMarket.findFirst({
+      where: { transferMarketId: +transferMarketId },
+    });
+    if (!transferMarket) {
+      return res.status(404).json({ errorMessage: '존재하지 않는 이적 시장입니다.' });
     }
+    if (transferMarket.status === 'success') {
+      return res.status(400).json({errorMessage: '이적이 완료된 이적 시장입니다.'})
+    }
+
+    const character = prisma.character.findFirst({
+      where: {AccountId: userId}
+    })
+
+    if (character.cash < transferMarket.sellCash) {
+      return res.status(400).json({ errorMessage: '보유하고 있는 캐시가 부족합니다.'})
+    }
+
+    const [seller, buyer] = await prisma.$transaction(
+      async (tx) => {
+        const seller = await tx.character.findFirst({
+          where: {characterId: transferMarket.sellerId}
+        })
+
+      }
+    )
+
+
+
+
+
+
+
+
   } catch (err) {
     next(err);
   }
