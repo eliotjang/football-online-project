@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import configs from '../utils/configs.js';
-import {prisma} from '../utils/prisma/index.js';
+import { prisma } from '../utils/prisma/index.js';
 
 export default async (req, res, next) => {
   try {
@@ -9,24 +9,24 @@ export default async (req, res, next) => {
 
     // 토큰 타입 확인
     if (tokenType !== 'Bearer') {
-        throw new Error("토큰 타입이 일치하지 않습니다.")
+      throw new Error('토큰 타입이 일치하지 않습니다.');
     }
 
     const decodedToken = jwt.verify(token, configs.tokenSecretKey);
-    const userId = decodedToken.userId;
+    const accountId = decodedToken.accountId;
 
-    const user = await prisma.user.findFirst({
-        where: {userId}
-    })
-    if (!user) {
-        res.clearCookie("authorization");
-        throw new Error("토큰 사용자가 존재하지 않습니다.")
+    const character = await prisma.character.findFirst({
+      where: { AccountId: accountId },
+    });
+    if (!character) {
+      res.clearCookie('authorization');
+      throw new Error('토큰 사용자가 존재하지 않습니다.');
     }
 
-    req.user = user;
+    req.character = character;
     next();
   } catch (err) {
-    res.clearCookie("authorization");
+    res.clearCookie('authorization');
 
     switch (err.name) {
       case 'JsonWebTokenError':

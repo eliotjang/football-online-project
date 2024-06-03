@@ -6,55 +6,64 @@ const router = express.Router();
 
 router.post('/games/play', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const myCharacter = await prisma.character.findUnique({
       where: {
-        UserId: userId,
+        characterId,
       },
     });
 
-    let myGameScore = 0;
+    const isExistRoster = await prisma.roster.findUnique({
+      where: {
+        CharacterId: characterId,
+      },
+    });
+    if (!isExistRoster) {
+      return res.status(400).json({ message: '출전 선수 명단이 존재하지 않습니다.' });
+    }
+
+    let myRankScore = myCharacter.rankScore;
+
+    // 출전 선수 명단 임의의 값 지정
+    /* const testRoster = await prisma.roster.create({
+      data: {
+        CharacterId: characterId,
+        roster1PlayerId: 1,
+        roster1UpgradeLevel: 0,
+        roster2PlayerId: 1,
+        roster2UpgradeLevel: 0,
+        roster3PlayerId: 1,
+        roster3UpgradeLevel: 0,
+      },
+    }); */
+    /* const testRoster2 = await prisma.roster.create({
+      data: {
+        CharacterId: 3,
+        roster1PlayerId: 1,
+        roster1UpgradeLevel: 0,
+        roster2PlayerId: 1,
+        roster2UpgradeLevel: 0,
+        roster3PlayerId: 1,
+        roster3UpgradeLevel: 0,
+      },
+    }); */
+    //console.log(testRoster);
 
     // 모든 캐릭터 조회
     const characters = await prisma.character.findMany({});
 
-    // 유저 랭크 점수 데이터
+    // 랭크 유저 데이터
     let userData = [];
 
     // 각 유저별 랭크 점수 확인
     for (const character of characters) {
       const { characterId } = character;
 
-      const gameRecord1 = await prisma.gameRecord.findMany({
-        where: {
-          characterId1: characterId,
-        },
-      });
-      const gameRecord2 = await prisma.gameRecord.findMany({
-        where: {
-          characterId2: characterId,
-        },
-      });
-
-      let wins = 0;
-      let draws = 0;
-      let losses = 0;
-
-      for (const record of gameRecord1) {
-        record.characterId1Win === true && wins++;
-        record.characterId1Lose === true && losses++;
-      }
-      for (const record of gameRecord2) {
-        record.characterId2Win === true && wins++;
-        record.characterId2Draw === true && draws++;
-        record.characterId2Lose === true && losses++;
-      }
-
-      const gameScore = 1000 + 10 * wins - 10 * losses;
+      const gameScore = character.rankScore;
+      console.log(gameScore);
 
       // 사용자인 경우 제외
       if (myCharacter.characterId === character.characterId) {
-        myGameScore = gameScore;
         continue;
       }
 
@@ -71,7 +80,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       const data = {
         characterId,
         name: character.name,
-        gameScore,
+        rankScore: character.rankScore,
       };
 
       userData.push(data);
@@ -79,14 +88,14 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
 
     // 점수 오름차순 정렬
     userData.sort((a, b) => {
-      if (a.gameScore > b.gameScore) return 1;
-      if (a.gameScore < b.gameScore) return -1;
+      if (a.rankScore > b.rankScore) return 1;
+      if (a.rankScore < b.rankScore) return -1;
     });
 
     // 점수 기반 상대 지정 (가장 가까운 점수)
     let scoreArr = [];
     for (let i = 0; i < userData.length; i++) {
-      scoreArr.push(Math.abs(myGameScore - userData[i].gameScore));
+      scoreArr.push(Math.abs(myRankScore - userData[i].rankScore));
     }
     const minScore = Math.min(...scoreArr);
     const minScoreIdx = scoreArr.indexOf(minScore);
@@ -106,76 +115,68 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
 
     // 사용자 출전 선수 스탯 정규화
     let myNormalizationScore = 0;
-    const myCharacterPlayer1 = await prisma.characterPlayer.findUnique({
+
+    const myPlayer1 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: myRoster.CharacterPlayerId1,
+        playerId: myRoster.roster1PlayerId,
+        upgradeLevel: myRoster.roster1UpgradeLevel,
       },
     });
-    const myCharacterPlayer2 = await prisma.characterPlayer.findUnique({
+    const myPlayer2 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: myRoster.CharacterPlayerId2,
+        playerId: myRoster.roster2PlayerId,
+        upgradeLevel: myRoster.roster2UpgradeLevel,
       },
     });
-    const myCharacterPlayer3 = await prisma.characterPlayer.findUnique({
+    const myPlayer3 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: myRoster.CharacterPlayerId3,
+        playerId: myRoster.roster3PlayerId,
+        upgradeLevel: myRoster.roster3UpgradeLevel,
       },
     });
 
-    const myCharacterPlayers = [myCharacterPlayer1, myCharacterPlayer2, myCharacterPlayer3];
+    const myPlayers = [myPlayer1, myPlayer2, myPlayer3];
 
-    for (let i = 0; i < myCharacterPlayers.length; i++) {
-      const playerId = myCharacterPlayers[i].playerId;
-      const upgradeLevel = myCharacterPlayers[i].upgradeLevel;
-      const player = await prisma.player.findUnique({
-        where: {
-          playerId_upgradeLevel: { playerId, upgradeLevel },
-        },
-      });
-
+    for (let i = 0; i < myPlayers.length; i++) {
       myNormalizationScore +=
-        player.playerSpeed * 0.1 +
-        player.goalDecision * 0.25 +
-        player.shootPower * 0.15 +
-        player.defence * 0.3 +
-        player.stamina * 0.2;
+        myPlayers[i].playerSpeed * 0.1 +
+        myPlayers[i].goalDecision * 0.25 +
+        myPlayers[i].shootPower * 0.15 +
+        myPlayers[i].defence * 0.3 +
+        myPlayers[i].stamina * 0.2;
     }
 
     // 상대 출전 선수 스탯 정규화
     let targetNormalizationScore = 0;
-    const targetCharacterPlayer1 = await prisma.characterPlayer.findUnique({
+
+    const targetPlayer1 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: targetRoster.CharacterPlayerId1,
+        playerId: targetRoster.roster1PlayerId,
+        upgradeLevel: targetRoster.roster1UpgradeLevel,
       },
     });
-    const targetCharacterPlayer2 = await prisma.characterPlayer.findUnique({
+    const targetPlayer2 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: targetRoster.CharacterPlayerId2,
+        playerId: targetRoster.roster2PlayerId,
+        upgradeLevel: targetRoster.roster2UpgradeLevel,
       },
     });
-    const targetCharacterPlayer3 = await prisma.characterPlayer.findUnique({
+    const targetPlayer3 = await prisma.player.findFirst({
       where: {
-        characterPlayerId: targetRoster.CharacterPlayerId3,
+        playerId: targetRoster.roster3PlayerId,
+        upgradeLevel: targetRoster.roster3UpgradeLevel,
       },
     });
 
-    const targetCharacterPlayers = [targetCharacterPlayer1, targetCharacterPlayer2, targetCharacterPlayer3];
+    const targetPlayers = [targetPlayer1, targetPlayer2, targetPlayer3];
 
-    for (let i = 0; i < targetCharacterPlayers.length; i++) {
-      const playerId = targetCharacterPlayers[i].playerId;
-      const upgradeLevel = targetCharacterPlayers[i].upgradeLevel;
-      const player = await prisma.player.findUnique({
-        where: {
-          playerId_upgradeLevel: { playerId, upgradeLevel },
-        },
-      });
-
+    for (let i = 0; i < targetPlayers.length; i++) {
       targetNormalizationScore +=
-        player.playerSpeed * 0.1 +
-        player.goalDecision * 0.25 +
-        player.shootPower * 0.15 +
-        player.defence * 0.3 +
-        player.stamina * 0.2;
+        targetPlayers[i].playerSpeed * 0.1 +
+        targetPlayers[i].goalDecision * 0.25 +
+        targetPlayers[i].shootPower * 0.15 +
+        targetPlayers[i].defence * 0.3 +
+        targetPlayers[i].stamina * 0.2;
     }
 
     // 풋살 게임 로직 (랜덤 기반)
@@ -219,6 +220,23 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
 
     // 사용자 팀 승리
     if (myGoal > targetGoal) {
+      await prisma.character.update({
+        where: {
+          characterId: myCharacter.characterId,
+        },
+        data: {
+          rankScore: { increment: 10 },
+        },
+      });
+      await prisma.character.update({
+        where: {
+          characterId: targetData.characterId,
+        },
+        data: {
+          rankScore: { decrement: 10 },
+        },
+      });
+
       characterId1Win = true;
       characterId2Lose = true;
 
@@ -243,6 +261,23 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
     }
     // 사용자 팀 패배
     if (myGoal < targetGoal) {
+      await prisma.character.update({
+        where: {
+          characterId: myCharacter.characterId,
+        },
+        data: {
+          rankScore: { decrement: 10 },
+        },
+      });
+      await prisma.character.update({
+        where: {
+          characterId: targetData.characterId,
+        },
+        data: {
+          rankScore: { increment: 10 },
+        },
+      });
+
       characterId1Lose = true;
       characterId2Win = true;
 

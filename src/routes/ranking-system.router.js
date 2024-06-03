@@ -42,8 +42,15 @@ router.get('/ranking', async (req, res, next) => {
         record.characterId2Lose === true && losses++;
       }
 
-      const winRate = Math.round((wins / (wins + losses + draws)) * 100) + '%';
-      const gameScore = 1000 + 10 * wins - 10 * losses;
+      let winRate = '';
+      const rate = Math.round((wins / (wins + losses + draws)) * 100);
+      if (isNaN(rate)) {
+        winRate = '0%';
+      } else {
+        winRate = `${rate}%`;
+      }
+
+      const gameScore = character.rankScore;
 
       const data = {
         rank: 0,
