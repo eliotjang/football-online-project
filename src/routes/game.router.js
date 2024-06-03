@@ -50,62 +50,40 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
 
     const teamARosterList = [
       //A,B팀 보유 선수 아이디 배열로 저장
-      teamARoster.CharacterPlayerId1,
-      teamARoster.CharacterPlayerId2,
-      teamARoster.CharacterPlayerId3,
+      { rosterPlayerId: teamARoster.roster1PlayerId, rosterUpgradeLevel: teamARoster.roster1UpgradeLevel },
+      { rosterPlayerId: teamARoster.roster2PlayerId, rosterUpgradeLevel: teamARoster.roster2UpgradeLevel },
+      { rosterPlayerId: teamARoster.roster3PlayerId, rosterUpgradeLevel: teamARoster.roster3UpgradeLevel },
     ];
 
     const teamBRosterList = [
-      teamBRoster.CharacterPlayerId1,
-      teamBRoster.CharacterPlayerId2,
-      teamBRoster.CharacterPlayerId3,
+      //A,B팀 보유 선수 아이디 배열로 저장
+      { rosterPlayerId: teamBRoster.roster1PlayerId, rosterUpgradeLevel: teamBRoster.roster1UpgradeLevel },
+      { rosterPlayerId: teamBRoster.roster2PlayerId, rosterUpgradeLevel: teamBRoster.roster2UpgradeLevel },
+      { rosterPlayerId: teamBRoster.roster3PlayerId, rosterUpgradeLevel: teamBRoster.roster3UpgradeLevel },
     ];
 
-    const teamAPlayerList = [];
-    const teamBPlayerList = [];
+    const teamAPlayerInfo = [];
+    const teamBPlayerInfo = [];
 
     for (const element of teamARosterList) {
-      //A,B팀 선수 아이디 배열로 저장
-      teamAPlayerList.push(
-        await prisma.characterPlayer.findFirst({
+      //A,B팀 선수 정보 배열로 저장
+      teamAPlayerInfo.push(
+        await prisma.player.findFirst({
           where: {
-            characterPlayerId: element,
+            playerId: element.rosterPlayerId,
+            upgradeLevel: element.rosterUpgradeLevel
           },
         })
       );
     }
 
     for (const element of teamBRosterList) {
-      teamBPlayerList.push(
-        await prisma.characterPlayer.findFirst({
-          where: {
-            characterPlayerId: element,
-          },
-        })
-      );
-    }
-
-    const teamAPlayerInfo = [];
-    const teamBPlayerInfo = [];
-
-    for (const element of teamAPlayerList) {
       //A,B팀 선수 정보 배열로 저장
-      teamAPlayerInfo.push(
-        await prisma.player.findFirst({
-          where: {
-            playerId: element.playerId,
-            upgradeLevel: element.upgradeLevel,
-          },
-        })
-      );
-    }
-
-    for (const element of teamBPlayerList) {
       teamBPlayerInfo.push(
         await prisma.player.findFirst({
           where: {
-            playerId: element.playerId,
-            upgradeLevel: element.upgradeLevel,
+            playerId: element.rosterPlayerId,
+            upgradeLevel: element.rosterUpgradeLevel
           },
         })
       );
@@ -148,6 +126,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
     currentTime += Math.floor(Math.random() * 90);
     while (currentTime <= maxTime) {
       const addScoreTeam = Math.random() * maxStat; //경기가 아직 진행중이라면 골 넣을 팀 랜덤으로 정함
+      const addScorePlayer = Math.floor(Math.random() * 3);
 
       if (addScoreTeam < teamAStat) {
         //A팀이 이길 경우
@@ -155,6 +134,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamACharacter.name} 팀`,
+          goalPlayer : teamAPlayerInfo[addScorePlayer].playerName
         });
       } else {
         //B팀이 이길 경우
@@ -162,6 +142,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamBCharacter.name} 팀`,
+          goalPlayer : teamBPlayerInfo[addScorePlayer].playerName
         });
       }
       currentTime += Math.floor(Math.random() * 45); //경기가 지난 시간 랜덤으로 결정
