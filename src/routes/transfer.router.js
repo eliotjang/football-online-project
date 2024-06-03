@@ -13,17 +13,13 @@ const transferSchema = Joi.object({
 // 이적 시장 등록 API
 router.post('/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const { accountId } = req.account;
+    const { characterId } = req.character;
     const validation = await transferSchema.validateAsync(req.body);
     const { sellPlayerId, sellCash } = validation;
 
-    const character = await prisma.character.findFirst({
-      where: { AccountId: accountId },
-    });
-
     const characterPlayer = await prisma.characterPlayer.findFirst({
       where: {
-        CharacterId: character.characterId,
+        CharacterId: characterId,
         characterPlayerId: sellPlayerId,
       },
     });
@@ -33,7 +29,7 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 
     const transferMarket = await prisma.transferMarket.create({
       data: {
-        sellerId: character.characterId,
+        sellerId: characterId,
         sellPlayerId,
         sellCash,
       },
@@ -65,7 +61,7 @@ router.get('/transfer', authMiddleware, async (req, res, next) => {
       },
     });
 
-    return res.status(200).json({ message: '이적 시장 목록입니다', requestTransfer, getTransfer, endTransfer });
+    return res.status(200).json({ message: '이적 시장 목록입니다', transferMarket });
   } catch (err) {
     next(err);
   }
