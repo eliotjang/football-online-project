@@ -22,6 +22,7 @@ model Character {
   UserId      Int    @unique @map("user_id")
   name        String @unique @map("name")
   cash        Int    @default(10000) @map("cash")
+  releaseCount Int    @default(0) @map("release_count")
 
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?
@@ -93,15 +94,13 @@ model Player {
   @@map("player")
 }
 
-model PlayerTransfer {
-  playerTransferId      Int      @id @unique @default(autoincrement()) @map("player_transfer_id")
-  characterId1          Int      @map("character_id1")
-  characterId2          Int      @map("character_id2")
-  character1PlayerId    Int      @map("character1_player_id")
-  character1Cash        Int      @map("character1_cash")
-  character2PlayerId    Int?     @map("character2_player_id")
-  character2Cash        Int?     @map("character2_cash")
-  status                String   @default("continue") @map("status")
+model TransferMarket {
+  transferMarketId  Int      @id @unique @default(autoincrement()) @map("transfer_market_id")
+  sellerId          Int      @map("seller_id")
+  sellPlayerId      Int      @map("sell_player_id")
+  sellCash          Int      @map("sell_cash")
+  buyerId           Int?      @map("buyer_id")
+  status            String   @default("continue") @map("status")
 
-  @@map("player_transfer")
+  @@map("transfer_market")
 }

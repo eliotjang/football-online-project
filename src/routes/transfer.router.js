@@ -5,27 +5,41 @@ import Joi from 'joi';
 
 const router = express.Router();
 
-const character1Schema = Joi.object({
-  character1PlayerId: Joi.number().required(),
-  cash: Joi.number().required(),
+const transferSchema = Joi.object({
+  sellPlayerId: Joi.number().required(),
+  sellCash: Joi.number().required(),
 });
 
 // 이적 신청 API
 router.post('/transfer', authMiddleware, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const character1Validation = await character1Schema.validateAsync(req.body);
-    const { character1PlayerId, cash } = character1Validation;
+    const validation = await transferSchema.validateAsync(req.body);
+    const { sellPlayerId, sellCash } = validation;
 
-    const transfer = await prisma.playerTransfer.create({
+    const character = await prisma.character.findFirst({
+      where: {UserId: userId}
+    })
+
+    const characterPlayer = await prisma.characterPlayer.findFirst({
+      where: {
+        CharacterId: character.characterId,
+        characterPlayerId: sellPlayerId
+      }
+    })
+    if (!characterPlayer) {
+      return res.status(400).json({errorMessage: '이적 신청을 하려는 선수를 보유하고 있지 않습니다.'})
+    }
+
+    const transferMarket = await prisma.transferMarket.create({
       data: {
-        characterId1: userId,
-        character1PlayerId,
-        character1Cash: cash,
+        sellerId: character.characterId,
+        sellPlayerId,
+        sellCash,
       },
     });
 
-    return res.status(201).json({ message: '이적 신청이 완료되었습니다.', data: transfer });
+    return res.status(201).json({ message: '이적 신청이 완료되었습니다.', data: transferMarket });
   } catch (err) {
     next(err);
   }
@@ -34,27 +48,16 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 // 이적 확인 API
 router.get('/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
-    const requestTransfer = await prisma.playerTransfer.findMany({
-      where: {
-        characterId1: userId,
-        status: 'continue',
-      },
-    });
+    const transferMarket = await prisma.transferMarket.findMany({
+      where: {status: 'continue'}
+    })
 
-    const getTransfer = await prisma.playerTransfer.findMany({
-      where: {
-        characterId2: userId,
-        status: 'continue',
-      },
-    });
 
-    const endTransfer = await prisma.playerTransfer.findMany({
-      where: {
-        OR: [{ characterId2: userId }, { characterId1: userId }],
-        status: { not: 'continue' },
-      },
-    });
+
+
+
+
+    
 
     return res.status(200).json({ message: '이적 리스트입니다', requestTransfer, getTransfer, endTransfer });
   } catch (err) {
