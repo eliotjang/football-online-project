@@ -15,14 +15,47 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       where: { UserId: userId },
     });
 
+    // 선수 방출횟수 확인
+    let releaseCount = character.releaseCount;
+
+    if (character.cash + releaseCount * 1000 < 1000 && releaseCount > 0) {
+      // 선수 방출횟수가 있는 상태에서 캐시 보유 상태 검사
+      return res.status(400).json({ Message: '선수 방출 패널티 부여로 인한 보유 캐쉬가 부족합니다.' });
+    }
+
     if (character.cash < 1000) {
       //캐시 보유 1000원 이상인지 검사
       return res.status(400).json({ Message: '보유 캐쉬가 부족합니다.' });
     }
 
+    const tier0 = 0.05; //티어에 따른 확률
+    const tier1 = 0.1;
+    const tier2 = 0.15;
+    const tier3 = 0.2;
+    const tier4 = 0.2;
+    const tier5 = 0.3;
+
+    let rarity = 0;
+
+    const randomNumRarity = Math.random(); //희귀 등급 뽑기
+    if (randomNumRarity < tier0) {
+      rarity = 0;
+    } else if (randomNumRarity < tier0 + tier1) {
+      rarity = 1;
+    } else if (randomNumRarity < tier0 + tier1 + tier2) {
+      rarity = 2;
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3) {
+      rarity = 3;
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4) {
+      rarity = 4;
+    } else if (randomNumRarity < tier0 + tier1 + tier2 + tier3 + tier4 + tier5) {
+      rarity = 5;
+    }
+
     const playerList = await prisma.player.findMany({
       //뽑기 선수 리스트 조회
       where: {
+        rarity: rarity,
         upgradeLevel: 0,
       },
     });
@@ -40,13 +73,20 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       },
     });
 
+    // 선수 방출 패널티 금액 추가
+    let price = 1000;
+    if (releaseCount > 0) {
+      price += 1000;
+    }
+    console.log(releaseCount);
+
     const [characterCashUpdate, playerUpdate] = await prisma.$transaction(
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
           where: { UserId: userId },
           data: {
-            cash: character.cash - 1000,
+            cash: character.cash - price,
           },
         });
 
@@ -83,7 +123,26 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       }
     );
 
-    return res.status(200).json({ Message: radomPlayer });
+    if (releaseCount > 0) {
+      // 선수 방출 패널티 횟수 차감
+      await prisma.character.update({
+        where: { UserId: userId },
+        data: {
+          releaseCount: { decrement: 1 },
+        },
+      });
+
+      return res.status(200).json({
+        message: '뽑은 선수 데이터입니다.',
+        addMessage: '선수 방출 패널티로 뽑기에 1000원이 추가 소요되었습니다.',
+        data: radomPlayer,
+      });
+    } else {
+      return res.status(200).json({
+        message: '뽑은 선수 데이터입니다.',
+        data: radomPlayer,
+      });
+    }
   } catch (err) {
     next(err);
   }

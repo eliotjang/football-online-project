@@ -34,6 +34,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
     });
     // ##################################################################################
     const characterPlayerIds = [characterPlayerId1, characterPlayerId2, characterPlayerId3];
+    const playerIds = [];
     for (const characterPlayerId of characterPlayerIds) {
       const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
         return characterPlayer.characterPlayerId === characterPlayerId;
@@ -42,6 +43,11 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       if (!characterPlayer) {
         return res.status(400).json({ errorMessage: '선수 아이디가 유효하지 않습니다.' });
       }
+      playerIds.push(characterPlayer.playerId);
+    }
+
+    if (playerIds[0] === playerIds[1] || playerIds[0] === playerIds[2] || playerIds[1] === playerIds[2]) {
+      return res.status(400).json({ errorMessage: '선수 아이디가 중복되었습니다.' });
     }
 
     // 출전 선수 명단 생성
