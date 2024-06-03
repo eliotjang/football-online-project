@@ -23,6 +23,7 @@ model Character {
   name         String @unique @map("name")
   cash         Int    @default(10000) @map("cash")
   releaseCount Int    @default(0) @map("release_count")
+  rankScore    Int    @default(1000) @map("rankScore")
 
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?
@@ -39,25 +40,22 @@ model CharacterPlayer {
   upgradeLevel      Int @default(0) @map("upgrade_level")
   playerCount       Int @default(0) @map("player_count")
 
-  Character     Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
-  RosterPlayer1 Roster?   @relation("CharacterPlayerId1")
-  RosterPlayer2 Roster?   @relation("CharacterPlayerId2")
-  RosterPlayer3 Roster?   @relation("CharacterPlayerId3")
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
 
   @@map("character_player")
 }
 
 model Roster {
-  rosterId           Int @id @default(autoincrement()) @map("roster_id")
-  CharacterId        Int @unique @map("character_id")
-  CharacterPlayerId1 Int @unique @map("character_player_id1")
-  CharacterPlayerId2 Int @unique @map("character_player_id2")
-  CharacterPlayerId3 Int @unique @map("character_player_id3")
+  rosterId            Int @id @default(autoincrement()) @map("roster_id")
+  CharacterId         Int @unique @map("character_id")
+  roster1PlayerId     Int @map("roster1_player_id")
+  roster1UpgradeLevel Int @map("roster1_upgrade_level")
+  roster2PlayerId     Int @map("roster2_player_id")
+  roster2UpgradeLevel Int @map("roster2_upgrade_level")
+  roster3PlayerId     Int @map("roster3_player_id")
+  roster3UpgradeLevel Int @map("roster3_upgrade_level")
 
-  Character        Character       @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
-  CharacterPlayer1 CharacterPlayer @relation("CharacterPlayerId1", fields: [CharacterPlayerId1], references: [characterPlayerId], onDelete: Restrict)
-  CharacterPlayer2 CharacterPlayer @relation("CharacterPlayerId2", fields: [CharacterPlayerId2], references: [characterPlayerId], onDelete: Restrict)
-  CharacterPlayer3 CharacterPlayer @relation("CharacterPlayerId3", fields: [CharacterPlayerId3], references: [characterPlayerId], onDelete: Restrict)
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
 
   @@map("roster")
 }
