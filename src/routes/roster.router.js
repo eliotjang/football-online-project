@@ -47,29 +47,28 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       [roster2PlayerId, roster2UpgradeLevel],
       [roster3PlayerId, roster3UpgradeLevel],
     ];
+    const rosterPlayerCharacterIds = [];
     for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
       const rosterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-        return (
-          characterPlayer.characterPlayerId === rosterPlayerId && characterPlayer.upgradeLevel === rosterUpgradeLevel
-        );
+        return characterPlayer.playerId === rosterPlayerId && characterPlayer.upgradeLevel === rosterUpgradeLevel;
       });
-
       if (!rosterPlayer) {
         return res.status(400).json({ errorMessage: '선수 아이디가 유효하지 않습니다.' });
       }
+      rosterPlayerCharacterIds.push(rosterPlayer.characterPlayerId);
     }
 
     // 출전 선수 명단 생성
     const roster = await prisma.$transaction(
       async (tx) => {
         // 출전 선수 캐릭터 보유 선수 명단에서 감소
-        for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
+        for (const rosterPlayerCharacterId of rosterPlayerCharacterIds) {
           const deletedCharacterPlayer = await tx.characterPlayer.delete({
-            where: { playerId: rosterPlayerId, upgradeLevel: rosterUpgradeLevel, playerCount: 1 },
+            where: { characterPlayerId: rosterPlayerCharacterId, playerCount: 1 },
           });
           if (!deletedCharacterPlayer) {
             await tx.characterPlayer.update({
-              where: { playerId: rosterPlayerId, upgradeLevel: rosterUpgradeLevel },
+              where: { characterPlayerId: rosterPlayerCharacterId },
               data: { playerCount: { decrement: 1 } },
             });
           }
@@ -121,12 +120,11 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
           for (const [preRosterPlayerId, preRosterUpgradeLevel] of preRoster) {
             const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
               return (
-                characterPlayer.characterPlayerId === preRosterPlayerId &&
-                characterPlayer.upgradeLevel === preRosterUpgradeLevel
+                characterPlayer.playerId === preRosterPlayerId && characterPlayer.upgradeLevel === preRosterUpgradeLevel
               );
             });
             if (!characterPlayer) {
-              roster = await tx.roster.create({
+              roster = await tx.characterPlayer.create({
                 data: {
                   CharacterId: character.characterId,
                   roster1PlayerId: preRoster1PlayerId,
@@ -139,7 +137,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
               });
             } else {
               await tx.characterPlayer.update({
-                where: { playerId: preRosterPlayerId, upgradeLevel: preRosterUpgradeLevel },
+                where: { characterPlayerId: characterPlayer.characterPlayerId },
                 data: { playerCount: { increment: 1 } },
               });
             }
@@ -206,26 +204,20 @@ router.delete('/roster', authMiddleware, async (req, res, next) => {
         // 캐릭터 보유 선수 명단에 추가 (playerCount + 1)
         for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
           const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-            return (
-              characterPlayer.characterPlayerId === rosterPlayerId &&
-              characterPlayer.upgradeLevel === rosterUpgradeLevel
-            );
+            return characterPlayer.playerId === rosterPlayerId && characterPlayer.upgradeLevel === rosterUpgradeLevel;
           });
           if (!characterPlayer) {
-            await tx.roster.create({
+            await tx.characterPlayer.create({
               data: {
                 CharacterId: character.characterId,
-                roster1PlayerId,
-                roster1UpgradeLevel,
-                roster2PlayerId,
-                roster2UpgradeLevel,
-                roster3PlayerId,
-                roster3UpgradeLevel,
+                playerId: rosterPlayerId,
+                upgradeLevel: rosterUpgradeLevel,
+                playerCount: 1,
               },
             });
           } else {
             await tx.characterPlayer.update({
-              where: { playerId: rosterPlayerId, upgradeLevel: rosterUpgradeLevel },
+              where: { characterPlayerId: characterPlayer.characterPlayerId },
               data: { playerCount: { increment: 1 } },
             });
           }
