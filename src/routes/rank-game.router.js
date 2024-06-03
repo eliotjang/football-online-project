@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.post('/games/play', authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const { characterId } = req.character;
     const myCharacter = await prisma.character.findUnique({
       where: {
-        UserId: userId,
+        characterId,
       },
     });
 

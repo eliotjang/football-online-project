@@ -1,5 +1,5 @@
 import express from 'express';
-import UserRouter from './routes/user.router.js';
+import AccountRouter from './routes/account.router.js';
 import CharacterRouter from '../src/routes/character.router.js';
 import CashRouter from '../src/routes/cash.router.js';
 import RosterRouter from '../src/routes/roster.router.js';
@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api', [
-  UserRouter,
+  AccountRouter,
   CharacterRouter,
   CashRouter,
   RosterRouter,

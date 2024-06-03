@@ -7,13 +7,12 @@ const router = express.Router();
 router.post('/games/play/:characterId', authMiddleware, async (req, res, next) => {
   // 일반(상대지정) 풋살 게임
   try {
-    const { userId } = req.user;
     const { characterId } = req.params;
 
     const teamACharacter = await prisma.character.findFirst({
       //A,B팀 캐릭터 정보 조회
       where: {
-        UserId: userId,
+        characterId: req.character.characterId,
       },
     });
 
