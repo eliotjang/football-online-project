@@ -10,6 +10,7 @@ import UpgradeRouter from './routes/upgrade.router.js';
 import RankGameRouter from './routes/rank-game.router.js';
 import CharacterPlayerRelease from './routes/character-player-release.js';
 import PlayerRouter from './routes/player.router.js';
+import TransferRouter from './routes/transfer.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -35,6 +36,7 @@ app.use('/api', [
   RankGameRouter,
   CharacterPlayerRelease,
   PlayerRouter,
+  TransferRouter,
 ]);
 app.use(errorHandlingMiddleware);
 

@@ -91,3 +91,18 @@ model Player {
   @@id([playerId, upgradeLevel])
   @@map("player")
 }
+
+model TransferMarket {
+  transferMarketId                  Int      @id @unique @default(autoincrement()) @map("transfer_market_id")
+  sellCharacterId                   Int      @map("sell_character_id")
+  sellCharacterName                 String   @map("sell_character_name")
+  sellCharacterPlayerId             Int      @map("sell_character_player_id")
+  sellCharacterPlayerName           String   @map("sell_character_player_name")
+  sellCharacterPlayerUpgradeLevel   Int      @map("sell_character_player_upgrade_level")
+  sellCash                          Int      @map("sell_cash")
+  buyCharacterId                    Int?     @map("buy_character_id")
+  buyCharacterName                  String?  @map("buy_character_name")
+  status                            String   @default("continue") @map("status")
+
+  @@map("transfer_market")
+}
