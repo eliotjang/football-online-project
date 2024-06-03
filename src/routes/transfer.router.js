@@ -111,7 +111,7 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
     const transferMarket = await prisma.transferMarket.findFirst({
       where: { transferMarketId: +transferMarketId },
     });
-    
+
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '존재하지 않는 이적 시장입니다.' });
     }
@@ -206,6 +206,56 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
     });
 
     return res.status(200).json({ message: '이적이 성공적으로 완료되었습니다.', data: changedTransferMarket });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 이적 등록 취소 API
+router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
+  try {
+    const { characterId } = req.character;
+    const { transferMarketId } = req.params;
+
+    const transferMarket = await prisma.transferMarket.findFirst({
+      where: { transferMarketId: +transferMarketId },
+      select: {
+        transferMarketId: true,
+        sellCharacterId: true,
+        sellCharacterName: true,
+        sellCharacterPlayerId: true,
+        sellCharacterPlayerName: true,
+        sellCharacterPlayerUpgradeLevel: true,
+        sellCash: true,
+      }
+    });
+    if (!transferMarket) {
+      return res.status(404).json({ errorMessage: '해당 이적 시장이 존재하지 않습니다.' });
+    }
+
+    if (characterId !== transferMarket.sellCharacterId) {
+      return res.status(400).json({ errorMessage: '해당 선수를 이적 시장에 등록한 캐릭터가 아닙니다.' });
+    }
+
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.transferMarket.delete({
+          where: { transferMarketId: +transferMarketId },
+        });
+
+        await tx.characterPlayer.update({
+          where: { characterPlayerId: transferMarket.sellCharacterPlayerId },
+          data: {
+            playerCount: { increment: 1 },
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      }
+    );
+ 
+    return res.status(200).json({ message: '이적 등록이 정상적으로 취소되었습니다', data: transferMarket });
   } catch (err) {
     next(err);
   }
