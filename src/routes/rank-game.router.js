@@ -180,69 +180,112 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
 
     // 풋살 게임 로직 (랜덤 기반)
     const maxScore = myNormalizationScore + targetNormalizationScore;
+    const maxTime = 90;
+    let currentTime = 0;
+    let myGoal = 0;
+    let targetGoal = 0;
+    const gameLog = [];
+    gameLog.push('[경기 실시간 골 점수 기록]');
 
-    let result = '';
     let characterId1Win = false;
     let characterId1Draw = false;
     let characterId1Lose = false;
     let characterId2Win = false;
     let characterId2Draw = false;
     let characterId2Lose = false;
-    const randomValue = Math.random() * maxScore;
-    if (randomValue < myNormalizationScore) {
-      // 높은 확률로 사용자 승리
-      const myGoal = Math.floor(Math.random() * 4) + 2; // 2에서 5 사이
-      const targetGoal = Math.floor(Math.random() * Math.min(3, myGoal + 1));
-      if (myGoal === targetGoal) {
-        result = `무승부: ${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`;
-        characterId1Draw = true;
-        characterId2Draw = true;
+
+    // 시간별 실시간 골 점수 기록
+    currentTime += Math.floor(Math.random() * 90);
+    while (currentTime <= maxTime) {
+      const randomValue = Math.random() * maxScore;
+      if (randomValue < myNormalizationScore) {
+        myGoal++;
+        gameLog.push({
+          time: `${currentTime}분`,
+          team: `${myCharacter.name} 팀`,
+        });
       } else {
-        result = {
-          winner: `${myCharacter.name}`,
-          loser: `${targetData.name}`,
-          score: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
-        };
-        characterId1Win = true;
-        characterId2Lose = true;
+        targetGoal++;
+        gameLog.push({
+          time: `${currentTime}분`,
+          team: `${targetData.name} 팀`,
+        });
       }
-    } else {
-      // 높은 확률로 상대 유저 승리
-      const targetGoal = Math.floor(Math.random() * 4) + 2; // 2에서 5 사이
-      const myGoal = Math.floor(Math.random() * Math.min(3, targetGoal + 1));
-      if (targetGoal === myGoal) {
-        result = `무승부: ${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`;
-        characterId1Draw = true;
-        characterId2Draw = true;
-      } else {
-        result = {
-          winner: `${targetData.name}`,
-          loser: `${myCharacter.name}`,
-          score: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
-        };
-        characterId2Win = true;
-        characterId1Lose = true;
-      }
+      currentTime += Math.floor(Math.random() * 45);
     }
 
-    // 게임 전적 추가
-    await prisma.gameRecord.create({
-      data: {
-        characterId1: myCharacter.characterId,
-        characterId2: targetData.characterId,
-        characterId1Win,
-        characterId1Draw,
-        characterId1Lose,
-        characterId2Win,
-        characterId2Draw,
-        characterId2Lose,
-      },
-    });
+    // 사용자 팀 승리
+    if (myGoal > targetGoal) {
+      characterId1Win = true;
+      characterId2Lose = true;
 
-    return res.status(200).json({
-      message: '랭크 게임 결과입니다.',
-      data: result,
-    });
+      await prisma.gameRecord.create({
+        data: {
+          characterId1: myCharacter.characterId,
+          characterId2: targetData.characterId,
+          characterId1Win,
+          characterId1Draw,
+          characterId1Lose,
+          characterId2Win,
+          characterId2Draw,
+          characterId2Lose,
+        },
+      });
+
+      return res.status(200).json({
+        message: `${myCharacter.name} 팀이 승리했습니다. 축하드립니다!`,
+        result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
+        gameLog: gameLog,
+      });
+    }
+    // 사용자 팀 패배
+    if (myGoal < targetGoal) {
+      characterId1Lose = true;
+      characterId2Win = true;
+
+      await prisma.gameRecord.create({
+        data: {
+          characterId1: myCharacter.characterId,
+          characterId2: targetData.characterId,
+          characterId1Win,
+          characterId1Draw,
+          characterId1Lose,
+          characterId2Win,
+          characterId2Draw,
+          characterId2Lose,
+        },
+      });
+
+      return res.status(200).json({
+        message: `${myCharacter.name} 팀이 패배했습니다. 좋은 선수로 구성해보세요!`,
+        result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
+        gameLog: gameLog,
+      });
+    }
+    // 무승부
+    if (myGoal === targetGoal) {
+      characterId1Draw = true;
+      characterId2Draw = true;
+
+      await prisma.gameRecord.create({
+        data: {
+          characterId1: myCharacter.characterId,
+          characterId2: targetData.characterId,
+          characterId1Win,
+          characterId1Draw,
+          characterId1Lose,
+          characterId2Win,
+          characterId2Draw,
+          characterId2Lose,
+        },
+      });
+
+      return res.status(200).json({
+        message: `${myCharacter.name} 팀이 비겼습니다. 치열했네요!`,
+        result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
+        gameLog: gameLog,
+      });
+    }
   } catch (error) {
     next(error);
   }
