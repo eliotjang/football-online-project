@@ -17,6 +17,7 @@ router.get('/character/info', authMiddleware, async (req, res, next) => {
         name: true,
         cash: true,
         releaseCount: true,
+        rankScore: true,
       },
     });
 
