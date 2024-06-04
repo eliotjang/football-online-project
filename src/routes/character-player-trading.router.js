@@ -12,7 +12,7 @@ const tradeSchema = Joi.object({
 });
 
 // 선수 트레이딩 API (JWT 인증)
-router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.patch('/character/player/trading/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const { characterPlayerId } = req.params;
@@ -22,6 +22,10 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
     const myCharacter = await prisma.character.findUnique({ where: { characterId } });
     const targetCharacter = await prisma.character.findUnique({ where: { characterId: tradeCharacterId } });
 
+    if (!myCharacter || !targetCharacter) {
+      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터입니다.' });
+    }
+
     // 사용자 및 상대 캐릭터 보유 선수
     const myCharacterPlayer = await prisma.characterPlayer.findUnique({
       where: { characterPlayerId: +characterPlayerId },
@@ -29,6 +33,9 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
     const targetCharacterPlayer = await prisma.characterPlayer.findUnique({
       where: { characterPlayerId: tradeCharacterPlayerId },
     });
+    if (!myCharacterPlayer || !targetCharacterPlayer) {
+      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 보유 선수입니다.' });
+    }
 
     // 사용자 및 상대 트레이드 선수
     const myPlayer = await prisma.player.findFirst({
@@ -37,16 +44,6 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
     const targetPlayer = await prisma.player.findFirst({
       where: { playerId: targetCharacterPlayer.playerId, upgradeLevel: targetCharacterPlayer.upgradeLevel },
     });
-
-    if (!myCharacter || !targetCharacter) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터입니다.' });
-    }
-    if (!myCharacterPlayer || !targetCharacterPlayer) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 보유 선수입니다.' });
-    }
-    if (myCharacterPlayer.playerCount === 0 || tradeCharacterPlayerId.playerCount === 0) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 보유 선수의 개수입니다.' });
-    }
 
     // 0. 트레이드 금액 제안 확인
     if (myCharacter.cash < offerCash) {

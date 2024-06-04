@@ -8,10 +8,10 @@ import DrawRouter from './routes/draw.router.js';
 import GameRouter from './routes/game.router.js';
 import UpgradeRouter from './routes/upgrade.router.js';
 import RankGameRouter from './routes/rank-game.router.js';
-import CharacterPlayerReleaseRouter from './routes/character-player-release.js';
+import CharacterPlayerReleaseRouter from './routes/character-player-release.router.js';
 import PlayerRouter from './routes/player.router.js';
 import TransferRouter from './routes/transfer.router.js';
-import PlayerTradingRouter from './routes/player-trading.router.js';
+import CharacterPlayerTradingRouter from './routes/character-player-trading.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -38,7 +38,7 @@ app.use('/api', [
   CharacterPlayerReleaseRouter,
   PlayerRouter,
   TransferRouter,
-  PlayerTradingRouter,
+  CharacterPlayerTradingRouter,
 ]);
 app.use(errorHandlingMiddleware);
 
