@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma/index.js';
 
 const router = express.Router();
 
+// 랭크 풋살 게임 API (JWT 인증)
 router.post('/games/play', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
@@ -24,31 +25,6 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
 
     let myRankScore = myCharacter.rankScore;
 
-    // 출전 선수 명단 임의의 값 지정
-    /* const testRoster = await prisma.roster.create({
-      data: {
-        CharacterId: characterId,
-        roster1PlayerId: 1,
-        roster1UpgradeLevel: 0,
-        roster2PlayerId: 1,
-        roster2UpgradeLevel: 0,
-        roster3PlayerId: 1,
-        roster3UpgradeLevel: 0,
-      },
-    }); */
-    /* const testRoster2 = await prisma.roster.create({
-      data: {
-        CharacterId: 3,
-        roster1PlayerId: 1,
-        roster1UpgradeLevel: 0,
-        roster2PlayerId: 1,
-        roster2UpgradeLevel: 0,
-        roster3PlayerId: 1,
-        roster3UpgradeLevel: 0,
-      },
-    }); */
-    //console.log(testRoster);
-
     // 모든 캐릭터 조회
     const characters = await prisma.character.findMany({});
 
@@ -58,9 +34,6 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
     // 각 유저별 랭크 점수 확인
     for (const character of characters) {
       const { characterId } = character;
-
-      const gameScore = character.rankScore;
-      console.log(gameScore);
 
       // 사용자인 경우 제외
       if (myCharacter.characterId === character.characterId) {
@@ -205,14 +178,14 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
         gameLog.push({
           time: `${currentTime}분`,
           team: `${myCharacter.name} 팀`,
-          goalPlayer : myPlayers[addScorePlayer].playerName
+          goalPlayer: myPlayers[addScorePlayer].playerName,
         });
       } else {
         targetGoal++;
         gameLog.push({
           time: `${currentTime}분`,
           team: `${targetData.name} 팀`,
-          goalPlayer : targetPlayers[addScorePlayer].playerName
+          goalPlayer: targetPlayers[addScorePlayer].playerName,
         });
       }
       currentTime += Math.floor(Math.random() * 45);

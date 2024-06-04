@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma/index.js';
 
 const router = express.Router();
 
+// 보유 선수 방출 API (JWT 인증)
 router.delete('/players/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;

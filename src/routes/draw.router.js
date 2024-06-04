@@ -5,8 +5,8 @@ import { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
+// 선수 뽑기 API (JWT 인증)
 router.post('/draw', authMiddleware, async (req, res, next) => {
-  // 선수 뽑기 API
   try {
     const { characterId } = req.character;
 

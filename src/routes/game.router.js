@@ -4,8 +4,8 @@ import { prisma } from '../utils/prisma/index.js';
 
 const router = express.Router();
 
+// 일반(상대지정) 풋살 게임 API
 router.post('/games/play/:characterId', authMiddleware, async (req, res, next) => {
-  // 일반(상대지정) 풋살 게임
   try {
     const { characterId } = req.params;
 
@@ -71,7 +71,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         await prisma.player.findFirst({
           where: {
             playerId: element.rosterPlayerId,
-            upgradeLevel: element.rosterUpgradeLevel
+            upgradeLevel: element.rosterUpgradeLevel,
           },
         })
       );
@@ -83,7 +83,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         await prisma.player.findFirst({
           where: {
             playerId: element.rosterPlayerId,
-            upgradeLevel: element.rosterUpgradeLevel
+            upgradeLevel: element.rosterUpgradeLevel,
           },
         })
       );
@@ -134,7 +134,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamACharacter.name} 팀`,
-          goalPlayer : teamAPlayerInfo[addScorePlayer].playerName
+          goalPlayer: teamAPlayerInfo[addScorePlayer].playerName,
         });
       } else {
         //B팀이 이길 경우
@@ -142,7 +142,7 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
         gameLog.push({
           gameTime: `${currentTime}분`,
           goalTeam: `${teamBCharacter.name} 팀`,
-          goalPlayer : teamBPlayerInfo[addScorePlayer].playerName
+          goalPlayer: teamBPlayerInfo[addScorePlayer].playerName,
         });
       }
       currentTime += Math.floor(Math.random() * 45); //경기가 지난 시간 랜덤으로 결정
