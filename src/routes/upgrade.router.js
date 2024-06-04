@@ -3,6 +3,7 @@ import Joi from 'joi';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import { prisma } from '../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
+import Futsal from '../controllers/functions.js';
 
 const router = express.Router();
 
@@ -30,34 +31,6 @@ function upgrade(targetUpgradeLevel, materialUpgradeLevel) {
   return true;
 }
 
-// 보유 선수 명단 추가
-async function addCharacterPlayer(character, playerId, upgradeLevel, prisma) {
-  let newCharacterPlayer;
-
-  // 같은 선수를 보유 중인지 확인
-  const characterPlayer = character.CharacterPlayer.find((characterPlayer) => {
-    return characterPlayer.playerId === playerId && characterPlayer.upgradeLevel === upgradeLevel;
-  });
-
-  if (!characterPlayer) {
-    newCharacterPlayer = await prisma.characterPlayer.create({
-      data: {
-        CharacterId: character.characterId,
-        playerId,
-        upgradeLevel,
-        playerCount: 1,
-      },
-    });
-  } else {
-    newCharacterPlayer = await prisma.characterPlayer.update({
-      where: { characterPlayerId: characterPlayer.characterPlayerId },
-      data: { playerCount: { increment: 1 } },
-    });
-  }
-
-  return newCharacterPlayer;
-}
-
 // 선수 강화 API 기능 구현 (JWT 인증)
 router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
@@ -74,7 +47,7 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === targetCharacterPlayerId;
     });
 
-    if (!targetCharacterPlayer || targetCharacterPlayer.playerCount-- < 1) {
+    if (!targetCharacterPlayer || targetCharacterPlayer.playerCount < 1) {
       return res.status(400).json({ errorMessage: '강화할 선수가 현재 보유한 선수가 아닙니다.' });
     }
     if (targetCharacterPlayer.upgradeLevel > 4) {
@@ -88,7 +61,11 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === materialCharacterPlayerId;
     });
 
-    if (!materialCharacterPlayer || materialCharacterPlayer.playerCount-- < 1) {
+    if (
+      !materialCharacterPlayer ||
+      materialCharacterPlayer.playerCount < 1 ||
+      (materialCharacterPlayer === targetCharacterPlayer && materialCharacterPlayer.playerCount < 2)
+    ) {
       return res.status(400).json({ errorMessage: '강화 재료 선수가 현재 보유한 선수가 아닙니다.' });
     }
 
@@ -106,36 +83,36 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
 
         // 강화 성공 시
         if (isSuccess) {
-          upgradedCharacterPlayer = await addCharacterPlayer(
-            character,
+          upgradedCharacterPlayer = await Futsal.addCharacterPlayer(
+            character.CharacterPlayer,
+            characterId,
             targetCharacterPlayer.playerId,
             targetCharacterPlayer.upgradeLevel + 1,
             tx
           );
         }
+
         // 강화 실패 시
         else {
-          upgradedCharacterPlayer = await addCharacterPlayer(character, targetCharacterPlayer.playerId, 0, tx);
+          upgradedCharacterPlayer = await Futsal.addCharacterPlayer(
+            character.CharacterPlayer,
+            characterId,
+            targetCharacterPlayer.playerId,
+            0,
+            tx
+          );
         }
 
         // // 강화 선수 및 재료 소진
         for (const characterPlayer of [targetCharacterPlayer, materialCharacterPlayer]) {
-          try {
-            const deletedCharacterPlayer = await tx.characterPlayer.delete({
-              where: { characterPlayerId: characterPlayer.characterPlayerId, playerCount: 1 },
-            });
-            if (!deletedCharacterPlayer) {
-              await tx.characterPlayer.update({
-                where: { characterPlayerId: characterPlayer.characterPlayerId },
-                data: { playerCount: { decrement: 1 } },
-              });
-            }
-          } catch {
-            await tx.characterPlayer.update({
-              where: { characterPlayerId: characterPlayer.characterPlayerId },
-              data: { playerCount: { decrement: 1 } },
-            });
-          }
+          console.log('before', character.CharacterPlayer);
+          await Futsal.removeCharacterPlayer(
+            character.CharacterPlayer,
+            characterPlayer.playerId,
+            characterPlayer.upgradeLevel,
+            tx
+          );
+          console.log('after', character.CharacterPlayer);
         }
 
         return upgradedCharacterPlayer;
