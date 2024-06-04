@@ -22,7 +22,7 @@ router.post('/sign-up', async (req, res, next) => {
     const validaion = await accountSchema.validateAsync(req.body);
     const { email, password, confirmPassword, name } = validaion;
 
-    // 이메일 중복 확인
+    // 이메일 중복 확인 테스트
     const isExistAccount = await prisma.account.findFirst({
       where: { email },
     });
