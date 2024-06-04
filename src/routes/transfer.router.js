@@ -59,18 +59,6 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
             upgradeLevel,
             offerCash,
           },
-          select: {
-            Character: {
-              select: {
-                characterId: true,
-                name: true,
-              },
-            },
-            playerId: true,
-            playerName: targetPlayer.playerName,
-            upgradeLevel: true,
-            offerCash: true,
-          },
         });
 
         return [transferMarket];
@@ -80,7 +68,19 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
       }
     );
 
-    return res.status(201).json({ message: '이적 시장 등록이 완료되었습니다.', data: transferMarket });
+    const character = await prisma.character.findFirst({
+      where: {characterId}
+    })
+
+    const data = {
+      characterId,
+      name: character.name,
+      playerId,
+      upgradeLevel,
+      offerCash,
+    }
+
+    return res.status(201).json({ message: '이적 시장 등록이 완료되었습니다.', data });
   } catch (err) {
     next(err);
   }
@@ -89,17 +89,19 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 // 이적 시장 조회 API
 router.get('/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const transferMarket = await prisma.transferMarket.findMany({
-      where: { status: 'continue' },
+    const possibleTransferMarket = await prisma.transferMarket.findMany({
+      where: { transferStatus: 'false' },
       select: {
-        transferMarketId: true,
-        sellCharacterId: true,
-        sellCharacterName: true,
-        sellCharacterPlayerId: true,
-        sellCharacterPlayerName: true,
-        sellCharacterPlayerUpgradeLevel: true,
-        sellCash: true,
-        status: true,
+        Character: {
+          select: {
+            characterId: true,
+            name: true,
+          },
+        },
+        playerId: true,
+        playerName: targetPlayer.playerName,
+        upgradeLevel: true,
+        offerCash: true,
       },
     });
 
