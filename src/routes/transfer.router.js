@@ -54,15 +54,15 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 
         const transferMarket = await tx.transferMarket.create({
           data: {
-            characterId,
+            CharacterId: characterId,
             playerId,
             upgradeLevel,
             offerCash,
           },
           select: {
-            characterId: true,
             Character: {
               select: {
+                characterId: true,
                 name: true,
               },
             },
