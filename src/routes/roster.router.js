@@ -7,6 +7,11 @@ import Futsal from '../controllers/functions.js';
 
 const router = express.Router();
 
+// 캐릭터 아이디 유효성 검사
+const characterIdSchema = Joi.object({
+  characterId: Joi.number().integer().required(),
+});
+
 // 출전 선수 명단 유효성 검사
 const rosterSchema = Joi.object({
   roster1PlayerId: Joi.number().integer().required(),
@@ -173,7 +178,8 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
 // 출전 선수 명단 조회 API
 router.get('/roster/:characterId', async (req, res, next) => {
   try {
-    const { characterId } = req.params;
+    const validation = await characterIdSchema.validateAsync(req.params);
+    const { characterId } = validation;
 
     const character = await prisma.character.findUnique({
       where: { characterId: +characterId },
@@ -181,11 +187,11 @@ router.get('/roster/:characterId', async (req, res, next) => {
     });
 
     if (!character) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 아이디입니다.' });
+      return res.status(404).json({ errorMessage: '요청한 캐릭터를 찾을 수 없습니다.' });
     }
 
     if (!character.Roster) {
-      return res.status(404).json({ errorMessage: '출전 선수 명단이 존재하지 않습니다.' });
+      return res.status(404).json({ errorMessage: '해당 캐릭터의 출전 선수 명단이 존재하지 않습니다.' });
     }
 
     const rosterPlayers = Futsal.rosterToRosterPlayers(character.Roster);
