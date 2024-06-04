@@ -18,15 +18,17 @@ model Account {
 }
 
 model Character {
-  characterId  Int    @id @default(autoincrement()) @map("character_id")
-  AccountId    Int    @unique @map("account_id")
-  name         String @unique @map("name")
-  cash         Int    @default(10000) @map("cash")
-  releaseCount Int    @default(0) @map("release_count")
-  rankScore    Int    @default(1000) @map("rankScore")
+  characterId       Int    @id @default(autoincrement()) @map("character_id")
+  AccountId         Int    @unique @map("account_id")
+  name              String @unique @map("name")
+  cash              Int    @default(10000) @map("cash")
+  releaseCount      Int    @default(0) @map("release_count")
+  rankScore         Int    @default(1000) @map("rankScore")
+  pityCount         Int    @default(0) @map("pityCount")
 
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?
+  TransferMarket TransferMarket[]
 
   Account Account @relation(fields: [AccountId], references: [accountId], onDelete: Cascade)
 
@@ -93,16 +95,16 @@ model Player {
 }
 
 model TransferMarket {
-  transferMarketId                  Int      @id @unique @default(autoincrement()) @map("transfer_market_id")
-  sellCharacterId                   Int      @map("sell_character_id")
-  sellCharacterName                 String   @map("sell_character_name")
-  sellCharacterPlayerId             Int      @map("sell_character_player_id")
-  sellCharacterPlayerName           String   @map("sell_character_player_name")
-  sellCharacterPlayerUpgradeLevel   Int      @map("sell_character_player_upgrade_level")
-  sellCash                          Int      @map("sell_cash")
-  buyCharacterId                    Int?     @map("buy_character_id")
-  buyCharacterName                  String?  @map("buy_character_name")
-  status                            String   @default("continue") @map("status")
+  transferMarketId    Int     @id @unique @default(autoincrement()) @map("transfer_market_id")
+  CharacterId         Int     @map("character_id")
+  playerId            Int     @map("player_id")
+  upgradeLevel        Int     @map("upgrade_level")
+  offerCash           Int     @map("offer_cash")
+  transferCharacterId Int?    @map("transfer_character_id") 
+  transferStatus      Boolean @default(false)
+
+  Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
+
 
   @@map("transfer_market")
 }
