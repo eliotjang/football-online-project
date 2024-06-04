@@ -69,16 +69,17 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
     );
 
     const character = await prisma.character.findFirst({
-      where: {characterId}
-    })
+      where: { characterId },
+    });
 
     const data = {
       characterId,
-      name: character.name,
+      characterName: character.name,
       playerId,
+      playerName: targetPlayer.playerName,
       upgradeLevel,
       offerCash,
-    }
+    };
 
     return res.status(201).json({ message: '이적 시장 등록이 완료되었습니다.', data });
   } catch (err) {
@@ -89,23 +90,70 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 // 이적 시장 조회 API
 router.get('/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const possibleTransferMarket = await prisma.transferMarket.findMany({
-      where: { transferStatus: 'false' },
-      select: {
-        Character: {
-          select: {
-            characterId: true,
-            name: true,
-          },
-        },
-        playerId: true,
-        playerName: targetPlayer.playerName,
-        upgradeLevel: true,
-        offerCash: true,
-      },
+    const { characterId } = req.character;
+
+    const possibleTransferData = await prisma.transferMarket.findMany({
+      where: { transferStatus: false },
+    });
+    const impossibleTransferData = await prisma.transferMarket.findMany({
+      where: { transferStatus: true },
     });
 
-    return res.status(200).json({ message: '이적 시장 목록입니다', data: transferMarket });
+    const possibleTransferMarket = [];
+    const impossibleTransferMarket = [];
+
+    for (const possibleMarket of possibleTransferData) {
+      const targetPlayer = await prisma.player.findFirst({
+        where: {
+          playerId: possibleMarket.playerId,
+          upgradeLevel: possibleMarket.upgradeLevel,
+        },
+      });
+      const character = await prisma.character.findFirst({
+        where: { characterId },
+      });
+
+      const data = {
+        characterId: possibleMarket.CharacterId,
+        characterName: character.name,
+        playerId: possibleMarket.playerId,
+        playerName: targetPlayer.playerName,
+        upgradeLevel: possibleMarket.upgradeLevel,
+        offerCash: possibleMarket.offerCash,
+      };
+
+      possibleTransferMarket.push(data);
+    }
+    
+    for (const impossibleMarket of impossibleTransferData) {
+      const targetPlayer = await prisma.player.findFirst({
+        where: {
+          playerId: impossibleMarket.playerId,
+          upgradeLevel: impossibleMarket.upgradeLevel,
+        },
+      });
+      const character = await prisma.character.findFirst({
+        where: { characterId },
+      });
+      const transferCharacter = await prisma.character.findFirst({
+        where: {characterId: impossibleMarket.transferCharacterId}
+      })
+      
+      const data = {
+        characterId: impossibleMarket.CharacterId,
+        characterName: character.name,
+        playerId: impossibleMarket.playerId,
+        playerName: targetPlayer.playerName,
+        upgradeLevel: impossibleMarket.upgradeLevel,
+        offerCash: impossibleMarket.offerCash,
+        transferCharacterId: transferCharacter.transferCharacterId,
+        transferCharacterName: transferCharacter.name,
+      };
+
+      impossibleTransferMarket.push(data);
+    }
+
+    return res.status(200).json({ message: '이적 시장 목록입니다', possibleTransferMarket, impossibleTransferMarket });
   } catch (err) {
     next(err);
   }
