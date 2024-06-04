@@ -7,8 +7,9 @@ import { Prisma } from '@prisma/client';
 const router = express.Router();
 
 const transferSchema = Joi.object({
-  sellCharacterPlayerId: Joi.number().required(),
-  sellCash: Joi.number().required(),
+  playerId: Joi.number().required(),
+  upgradeLevel: Joi.number().required(),
+  offerCash: Joi.number().required(),
 });
 
 // 이적 시장 등록 API
@@ -16,53 +17,59 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const validation = await transferSchema.validateAsync(req.body);
-    const { sellCharacterPlayerId, sellCash } = validation;
+    const { playerId, upgradeLevel, offerCash } = validation;
 
-    const targetCharacterPlayer = await prisma.characterPlayer.findFirst({
+    const characterPlayer = await prisma.characterPlayer.findFirst({
       where: {
         CharacterId: characterId,
-        characterPlayerId: sellCharacterPlayerId,
+        playerId,
+        upgradeLevel,
       },
     });
-    if (!targetCharacterPlayer || targetCharacterPlayer.playerCount === 0) {
-      return res.status(400).json({ errorMessage: '이적 시장 등록을 하려는 선수를 보유하고 있지 않습니다.' });
+    if (!characterPlayer) {
+      return res.status(404).json({ errorMessage: '해당 선수를 보유하고 있지 않습니다.' });
     }
 
-    const character = await prisma.character.findFirst({
-      where: { characterId },
-    });
-
     const targetPlayer = await prisma.player.findFirst({
-      where: { playerId: targetCharacterPlayer.playerId },
+      where: {
+        playerId,
+        upgradeLevel,
+      },
     });
 
     const [transferMarket] = await prisma.$transaction(
       async (tx) => {
-        await tx.characterPlayer.update({
-          where: { characterPlayerId: +sellCharacterPlayerId },
-          data: {
-            playerCount: { decrement: 1 },
-          },
-        });
+        if (characterPlayer.playerCount === 1) {
+          await tx.characterPlayer.delete({
+            where: { characterPlayerId: characterPlayer.characterPlayerId },
+          });
+        } else {
+          await tx.characterPlayer.update({
+            where: { characterPlayerId: characterPlayer.characterPlayerId },
+            data: {
+              playerCount: { decrement: 1 },
+            },
+          });
+        }
 
         const transferMarket = await tx.transferMarket.create({
           data: {
-            sellCharacterId: characterId,
-            sellCharacterName: character.name,
-            sellCharacterPlayerId,
-            sellCharacterPlayerName: targetPlayer.playerName,
-            sellCharacterPlayerUpgradeLevel: targetCharacterPlayer.upgradeLevel,
-            sellCash,
+            characterId,
+            playerId,
+            upgradeLevel,
+            offerCash,
           },
           select: {
-            transferMarketId: true,
-            sellCharacterId: true,
-            sellCharacterName: true,
-            sellCharacterPlayerId: true,
-            sellCharacterPlayerName: true,
-            sellCharacterPlayerUpgradeLevel: true,
-            sellCash: true,
-            status: true,
+            characterId: true,
+            Character: {
+              select: {
+                name: true,
+              },
+            },
+            playerId: true,
+            playerName: targetPlayer.playerName,
+            upgradeLevel: true,
+            offerCash: true,
           },
         });
 
@@ -227,7 +234,7 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
         sellCharacterPlayerName: true,
         sellCharacterPlayerUpgradeLevel: true,
         sellCash: true,
-      }
+      },
     });
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '해당 이적 시장이 존재하지 않습니다.' });
@@ -254,7 +261,7 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
     );
- 
+
     return res.status(200).json({ message: '이적 등록이 정상적으로 취소되었습니다', data: transferMarket });
   } catch (err) {
     next(err);
