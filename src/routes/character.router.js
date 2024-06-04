@@ -18,6 +18,7 @@ router.get('/character/info', authMiddleware, async (req, res, next) => {
         cash: true,
         releaseCount: true,
         rankScore: true,
+        pityCount: true,
       },
     });
 
