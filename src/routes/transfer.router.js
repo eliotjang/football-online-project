@@ -250,6 +250,7 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
     );
+
     const character = await prisma.character.findFirst({
       where: { characterId: transferMarket.CharacterId },
     });
@@ -286,21 +287,12 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
 
     const transferMarket = await prisma.transferMarket.findFirst({
       where: { transferMarketId: +transferMarketId },
-      select: {
-        transferMarketId: true,
-        sellCharacterId: true,
-        sellCharacterName: true,
-        sellCharacterPlayerId: true,
-        sellCharacterPlayerName: true,
-        sellCharacterPlayerUpgradeLevel: true,
-        sellCash: true,
-      },
     });
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '해당 이적 시장이 존재하지 않습니다.' });
     }
 
-    if (characterId !== transferMarket.sellCharacterId) {
+    if (characterId !== transferMarket.CharacterId) {
       return res.status(400).json({ errorMessage: '해당 선수를 이적 시장에 등록한 캐릭터가 아닙니다.' });
     }
 
@@ -310,19 +302,57 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
           where: { transferMarketId: +transferMarketId },
         });
 
-        await tx.characterPlayer.update({
-          where: { characterPlayerId: transferMarket.sellCharacterPlayerId },
-          data: {
-            playerCount: { increment: 1 },
+        const characterPlayer = await tx.characterPlayer.findFirst({
+          where: {
+            CharacterId: characterId,
+            playerId: transferMarket.playerId,
+            upgradeLevel: transferMarket.upgradeLevel,
           },
         });
+
+        if (!characterPlayer) {
+          await tx.characterPlayer.create({
+            data: {
+              CharacterId: characterId,
+              playerId: transferMarket.playerId,
+              upgradeLevel: transferMarket.upgradeLevel,
+              playerCount: 1,
+            },
+          });
+        } else {
+          await tx.characterPlayer.update({
+            where: { characterPlayerId: characterPlayer.characterPlayerId },
+            data: {
+              playerCount: { increment: 1 },
+            },
+          });
+        }
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
     );
+    const character = await prisma.character.findFirst({
+      where: { characterId },
+    });
+    const targetPlayer = await prisma.player.findFirst({
+      where: {
+        playerId: transferMarket.playerId,
+        upgradeLevel: transferMarket.upgradeLevel,
+      },
+    });
 
-    return res.status(200).json({ message: '이적 등록이 정상적으로 취소되었습니다', data: transferMarket });
+    const data = {
+      transferMarketId: transferMarket.transferMarketId,
+      characterId: transferMarket.CharacterId,
+      characterName: character.name,
+      playerId: transferMarket.playerId,
+      playerName: targetPlayer.playerName,
+      upgradeLevel: transferMarket.upgradeLevel,
+      offerCash: transferMarket.offerCash,
+    };
+
+    return res.status(200).json({ message: '이적 등록이 정상적으로 취소되었습니다', data });
   } catch (err) {
     next(err);
   }
