@@ -65,7 +65,8 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
       }
     }
 
-    // 1. 사용자 선수를 상대 보유 선수 이동
+    // 1. 사용자 선수를 상대 보유 선수로 이동
+
     // 사용자 보유 선수 차감
     if (myCharacterPlayer.playerCount === 1) {
       await prisma.characterPlayer.delete({
@@ -106,7 +107,8 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
       });
     }
 
-    // 2. 사용자 선수를 상대 보유 선수 이동
+    // 2. 상대 선수를 사용자 보유 선수로 이동
+
     // 상대 보유 선수 차감
     if (targetCharacterPlayer.playerCount === 1) {
       await prisma.characterPlayer.delete({

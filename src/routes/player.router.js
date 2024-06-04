@@ -62,6 +62,10 @@ router.get('/player/:characterId', async (req, res, next) => {
       },
     });
 
+    if (!character) {
+      return res.status(400).json({ errerMessage: '유효하지 않은 캐릭터 아이디입니다.' });
+    }
+
     const characterPlayers = await prisma.characterPlayer.findMany({
       where: {
         CharacterId: character.characterId,
