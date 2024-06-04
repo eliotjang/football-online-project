@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/draw', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
-    const drawPrice = 0;
+    const drawPrice = 1000;
 
     const character = await prisma.character.findFirst({
       //캐릭터 정보 조회
@@ -153,8 +153,8 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const { drawCount } = req.body;
-    const drawPrice = 0;
-    let currentPityCount = character.pityCount;
+    const drawPrice = 5000;
+
     let pitySystemStatus = false;
 
     const character = await prisma.character.findFirst({
@@ -162,6 +162,8 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
       where: { characterId },
     });
 
+    //현재 천장까지 뽑은 횟수
+    let currentPityCount = character.pityCount;
     // 선수 방출횟수 확인
     let releaseCount = character.releaseCount;
     const penaltyPrice = 1000;
@@ -239,15 +241,18 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         }
       }
 
-      if (rarity == 0) { //좋은것을 뽑앗을 경우 천장 횟수 초기화
-        currentPityCount = 0;
-      }
-
-      if (currentPityCount >= 10) { //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
-        rarity = 0;
-        currentPityCount -= 10;
+      if (currentPityCount >= 9) { //천장을 찍었다면 true로 상태를 변환
         pitySystemStatus = true;
       }
+
+      if (currentPityCount >= 9 || rarity == 0) { //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
+        rarity = 0;
+        currentPityCount = 0;//좋은것을 뽑앗을 경우 천장 횟수 초기화
+      } else {
+        currentPityCount++ //아닐경우 카운트 추가
+      }
+
+
 
       const playerList = await prisma.player.findMany({
         //뽑기 선수 리스트 조회
@@ -260,7 +265,6 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
       const randomNum = Math.floor(Math.random() * playerList.length); //랜덤으로 뽑을 리스트 idex 뽑기
 
       radomPlayerList.push(playerList[randomNum]); //당첨 선수 정보
-      currentPityCount++
     }
 
     const existPlayerList = [];
@@ -313,12 +317,12 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
     console.log(existPlayerList)
 
     // 선수 방출 패널티 금액 추가
-    let price = drawPrice;
+    let price = drawPrice * drawCount;
     if (releaseCount > 0) {
       price += penaltyPrice * decrementReleaseCount;
     }
 
-    const [characterCashUpdate, playerUpdate] = await prisma.$transaction(
+    const [characterCashUpdate, playerUpdate, characterUpdate] = await prisma.$transaction(
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
@@ -346,7 +350,14 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
           });
         }
 
-        return [characterCashUpdate, playerUpdate];
+        const characterUpdate = await tx.character.update({
+          where: { characterId },
+          data: {
+            pityCount: currentPityCount,
+          }
+        })
+
+        return [characterCashUpdate, playerUpdate, characterUpdate];
 
       },
       {
@@ -360,21 +371,20 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         where: { characterId },
         data: {
           releaseCount: { decrement: decrementReleaseCount },
-          pityCount: currentPityCount
         },
       });
 
       return res.status(200).json({
         message: '뽑은 선수 데이터입니다.',
-        addMessage: '선수 방출 패널티로 뽑기에 1000원이 추가 소요되었습니다.',
+        addMessage: `선수 방출 패널티로 뽑기에 ${penaltyPrice * decrementReleaseCount}원이 추가 소요되었습니다.`,
+        pitySystem: pitySystemStatus,
         data: radomPlayerList,
-        pitySystem: pitySystemStatus
       });
     } else {
       return res.status(200).json({
         message: '뽑은 선수 데이터입니다.',
+        pitySystem: pitySystemStatus,
         data: radomPlayerList,
-        pitySystem: pitySystemStatus
       });
     }
   } catch (err) {
