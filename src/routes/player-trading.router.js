@@ -49,6 +49,9 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
     }
 
     // 0. 트레이드 금액 제안 확인
+    if (myCharacter.cash < offerCash) {
+      return res.status(400).json({ errorMessage: '보유 캐시가 부족합니다.' });
+    }
     let compareValuePrice = 0;
     if (myPlayer.value >= targetPlayer.value) {
       compareValuePrice = offerCash;
