@@ -19,7 +19,10 @@ router.post('/character/players/transfer', authMiddleware, async (req, res, next
     const { characterPlayerId, offerCash } = validation;
 
     const characterPlayer = await prisma.characterPlayer.findFirst({
-      where: { characterPlayerId },
+      where: {
+        characterPlayerId,
+        CharacterId: characterId,
+      },
     });
     if (!characterPlayer) {
       return res.status(404).json({ errorMessage: '해당 선수를 보유하고 있지 않습니다.' });
