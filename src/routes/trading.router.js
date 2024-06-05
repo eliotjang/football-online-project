@@ -28,7 +28,10 @@ router.patch('/character/player/trading/:characterPlayerId', authMiddleware, asy
 
     // 사용자 및 상대 캐릭터 보유 선수
     const myCharacterPlayer = await prisma.characterPlayer.findUnique({
-      where: { characterPlayerId: +characterPlayerId },
+      where: {
+        characterPlayerId: +characterPlayerId,
+        CharacterId: characterId,
+      },
     });
     const targetCharacterPlayer = await prisma.characterPlayer.findUnique({
       where: { characterPlayerId: tradeCharacterPlayerId },
