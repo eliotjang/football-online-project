@@ -6,15 +6,10 @@ import { Prisma } from '@prisma/client';
 const router = express.Router();
 
 // 선수 뽑기 API (JWT 인증)
-router.post('/draw', authMiddleware, async (req, res, next) => {
+router.post('/character/player/draw', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
+    const character = req.character;
     const drawPrice = 1000;
-
-    const character = await prisma.character.findFirst({
-      //캐릭터 정보 조회
-      where: { characterId },
-    });
 
     // 선수 방출횟수 확인
     let releaseCount = character.releaseCount;
@@ -84,7 +79,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             cash: character.cash - price,
           },
@@ -126,7 +121,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     if (releaseCount > 0) {
       // 선수 방출 패널티 횟수 차감
       await prisma.character.update({
-        where: { characterId },
+        where: { characterId: character.characterId },
         data: {
           releaseCount: { decrement: 1 },
         },
@@ -148,19 +143,14 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
   }
 });
 
-router.post('/draw/rare', authMiddleware, async (req, res, next) => {
+router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, next) => {
   // 고급 선수 뽑기 API
   try {
-    const { characterId } = req.character;
+    const character = req.character;
     const { drawCount } = req.body;
     const drawPrice = 5000;
 
     let pitySystemStatus = false;
-
-    const character = await prisma.character.findFirst({
-      //캐릭터 정보 조회
-      where: { characterId },
-    });
 
     //현재 천장까지 뽑은 횟수
     let currentPityCount = character.pityCount;
@@ -326,7 +316,7 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             cash: { decrement: price },
           },
@@ -351,7 +341,7 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         }
 
         const characterUpdate = await tx.character.update({
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             pityCount: currentPityCount,
           }
@@ -368,7 +358,7 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
     if (releaseCount > 0) {
       // 선수 방출 패널티 횟수 차감, 천장 이후 뽑은 횟수 수정
       await prisma.character.update({
-        where: { characterId },
+        where: { characterId: character.characterId },
         data: {
           releaseCount: { decrement: decrementReleaseCount },
         },
