@@ -53,7 +53,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
       if (requestRosterPlayers[0]) {
         for (const playerId of requestRosterPlayers[0]) {
           if (characterPlayer.playerId === playerId) {
-            return res.status(409).json({ errorMessage: '선수 아이디가 중복되었습니다.' });
+            return res.status(400).json({ errorMessage: '선수 아이디가 중복되었습니다.' });
           }
         }
       }
