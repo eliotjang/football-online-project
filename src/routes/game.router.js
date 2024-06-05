@@ -17,7 +17,7 @@ router.post('/game-content/futsal/game/:characterId', authMiddleware, async (req
     const teamACharacter = req.character;
 
     if (characterId == teamACharacter.characterId) {
-      res.status(400).json({ message: "자신말고 상대를 지정해 주기 바랍니다." })
+      return res.status(400).json({ message: "자신말고 상대를 지정해 주기 바랍니다." })
     }
 
     const teamBCharacter = await prisma.character.findFirst({
