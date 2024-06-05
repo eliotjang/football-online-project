@@ -34,7 +34,7 @@ router.patch('/character/player/trading/:characterPlayerId', authMiddleware, asy
       },
     });
     const targetCharacterPlayer = await prisma.characterPlayer.findUnique({
-      where: { characterPlayerId: tradeCharacterPlayerId },
+      where: { characterPlayerId: tradeCharacterPlayerId, CharacterId: targetCharacter.characterId },
     });
     if (!myCharacterPlayer || !targetCharacterPlayer) {
       return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 보유 선수입니다.' });
