@@ -1,6 +1,6 @@
 import express from 'express';
-import { prisma } from '../utils/prisma/index.js';
-import authMiddleware from '../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
 import Joi from 'joi';
 import { Prisma } from '@prisma/client';
 
@@ -12,7 +12,7 @@ const transferSchema = Joi.object({
 });
 
 // 이적 시장 등록 API
-router.post('/character/players/transfer', authMiddleware, async (req, res, next) => {
+router.post('/character/content/transfer', authMiddleware, async (req, res, next) => {
   try {
     const { characterId, name } = req.character;
     const validation = await transferSchema.validateAsync(req.body);
@@ -83,7 +83,7 @@ router.post('/character/players/transfer', authMiddleware, async (req, res, next
 });
 
 // 이적 시장 조회 API
-router.get('/character/players/transfer', authMiddleware, async (req, res, next) => {
+router.get('/character/content/transfer', authMiddleware, async (req, res, next) => {
   try {
     const possibleTransferData = await prisma.transferMarket.findMany({
       where: { transferStatus: false },
@@ -155,7 +155,7 @@ router.get('/character/players/transfer', authMiddleware, async (req, res, next)
 });
 
 // 이적 시장 구매 API
-router.post('/character/players/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
+router.post('/character/content/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId, cash, name } = req.character;
     const { transferMarketId } = req.params;
@@ -239,8 +239,8 @@ router.post('/character/players/transfer/:transferMarketId', authMiddleware, asy
       }
     );
     const character = await prisma.character.findFirst({
-      where: {characterId: transferMarket.CharacterId}
-    })
+      where: { characterId: transferMarket.CharacterId },
+    });
 
     const targetPlayer = await prisma.player.findFirst({
       where: {
@@ -268,7 +268,7 @@ router.post('/character/players/transfer/:transferMarketId', authMiddleware, asy
 });
 
 // 이적 등록 취소 API
-router.delete('/character/players/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
+router.delete('/character/content/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId, name } = req.character;
     const { transferMarketId } = req.params;

@@ -1,10 +1,10 @@
 import express from 'express';
 import Joi from 'joi';
-import { prisma } from '../utils/prisma/index.js';
+import { prisma } from '../../utils/prisma/index.js';
 import bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import configs from '../utils/configs.js';
+import configs from '../../utils/configs.js';
 
 const router = express.Router();
 

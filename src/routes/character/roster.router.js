@@ -1,9 +1,9 @@
 import express from 'express';
 import Joi from 'joi';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../middlewares/auth.middleware.js';
+import { prisma } from '../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
-import Futsal from '../controllers/functions.js';
+import Futsal from '../../controllers/functions.js';
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ const rosterSchema = Joi.object({
 });
 
 // 출전 선수 명단 구성 API (JWT 인증)
-router.post('/roster', authMiddleware, async (req, res, next) => {
+router.post('/character/roster', authMiddleware, async (req, res, next) => {
   try {
     const validaion = await rosterSchema.validateAsync(req.body);
     const { characterPlayerId1, characterPlayerId2, characterPlayerId3 } = validaion;
@@ -112,7 +112,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
 });
 
 // 출전 선수 명단 제거 API (JWT 인증)
-router.delete('/roster', authMiddleware, async (req, res, next) => {
+router.delete('/character/roster', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const character = await prisma.character.findUnique({
@@ -153,7 +153,7 @@ router.delete('/roster', authMiddleware, async (req, res, next) => {
 });
 
 // 출전 선수 명단 조회 API (JWT 인증)
-router.get('/roster', authMiddleware, async (req, res, next) => {
+router.get('/character/roster', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const character = await prisma.character.findUnique({
@@ -181,46 +181,6 @@ router.get('/roster', authMiddleware, async (req, res, next) => {
     }
 
     return res.status(200).json({ data: players });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 출전 선수 명단 조회 API
-router.get('/roster/:characterId', async (req, res, next) => {
-  try {
-    const validation = await characterIdSchema.validateAsync(req.params);
-    const { characterId } = validation;
-
-    const character = await prisma.character.findUnique({
-      where: { characterId: +characterId },
-      include: { Roster: true },
-    });
-
-    if (!character) {
-      return res.status(404).json({ errorMessage: '요청한 캐릭터를 찾을 수 없습니다.' });
-    }
-
-    if (!character.Roster) {
-      return res.status(404).json({ errorMessage: '해당 캐릭터의 출전 선수 명단이 존재하지 않습니다.' });
-    }
-
-    const rosterPlayers = Futsal.rosterToRosterPlayers(character.Roster);
-    const players = [];
-
-    for (const [rosterPlayerId, rosterUpgradeLevel] of rosterPlayers) {
-      const player = await prisma.player.findUnique({
-        where: { playerId_upgradeLevel: { playerId: rosterPlayerId, upgradeLevel: rosterUpgradeLevel } },
-      });
-
-      if (!player) {
-        return res.status(404).json({ errorMessage: '요청한 선수를 찾을 수 없습니다.' });
-      }
-
-      players.push(player);
-    }
-
-    return res.status(200).json({ message: `${character.name} 캐릭터의 출전 선수 명단입니다.`, data: players });
   } catch (error) {
     next(error);
   }

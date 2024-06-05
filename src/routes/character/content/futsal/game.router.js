@@ -1,6 +1,6 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../../utils/prisma/index.js';
 import Joi from 'joi';
 
 const router = express.Router();
@@ -10,14 +10,14 @@ const characterIdSchema = Joi.object({
 });
 
 // 일반(상대지정) 풋살 게임 API
-router.post('/game-content/futsal/game/:characterId', authMiddleware, async (req, res, next) => {
+router.post('/character/content/futsal/game/:characterId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = await characterIdSchema.validateAsync(req.params);
 
     const teamACharacter = req.character;
 
     if (characterId == teamACharacter.characterId) {
-      return res.status(400).json({ message: "자신말고 상대를 지정해 주기 바랍니다." })
+      return res.status(400).json({ message: '자신말고 상대를 지정해 주기 바랍니다.' });
     }
 
     const teamBCharacter = await prisma.character.findFirst({

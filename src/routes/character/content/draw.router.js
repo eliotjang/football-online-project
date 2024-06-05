@@ -1,12 +1,12 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
 // 선수 뽑기 API (JWT 인증)
-router.post('/character/player/draw', authMiddleware, async (req, res, next) => {
+router.post('/character/content/draw', authMiddleware, async (req, res, next) => {
   try {
     const character = req.character;
     const drawPrice = 1000;
@@ -143,7 +143,7 @@ router.post('/character/player/draw', authMiddleware, async (req, res, next) => 
   }
 });
 
-router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, next) => {
+router.post('/character/content/upgrade-draw', authMiddleware, async (req, res, next) => {
   // 고급 선수 뽑기 API
   try {
     const character = req.character;
@@ -231,18 +231,18 @@ router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, 
         }
       }
 
-      if (currentPityCount >= 9) { //천장을 찍었다면 true로 상태를 변환
+      if (currentPityCount >= 9) {
+        //천장을 찍었다면 true로 상태를 변환
         pitySystemStatus = true;
       }
 
-      if (currentPityCount >= 9 || rarity == 0) { //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
+      if (currentPityCount >= 9 || rarity == 0) {
+        //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
         rarity = 0;
-        currentPityCount = 0;//좋은것을 뽑앗을 경우 천장 횟수 초기화
+        currentPityCount = 0; //좋은것을 뽑앗을 경우 천장 횟수 초기화
       } else {
-        currentPityCount++ //아닐경우 카운트 추가
+        currentPityCount++; //아닐경우 카운트 추가
       }
-
-
 
       const playerList = await prisma.player.findMany({
         //뽑기 선수 리스트 조회
@@ -304,7 +304,7 @@ router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, 
         }
       }
     }
-    console.log(existPlayerList)
+    console.log(existPlayerList);
 
     // 선수 방출 패널티 금액 추가
     let price = drawPrice * drawCount;
@@ -323,15 +323,12 @@ router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, 
         });
 
         const playerUpdate = await tx.characterPlayer.createMany({
-          data: [
-            ...notExistPlayerList
-          ],
+          data: [...notExistPlayerList],
         });
 
         //존재한다면 보유 목록에 선수 카운트 1 더하기
 
         for (const existPlayer of existPlayerList) {
-
           const playerUpdate = await tx.characterPlayer.update({
             where: { characterPlayerId: existPlayer.characterPlayerId },
             data: {
@@ -344,11 +341,10 @@ router.post('/character/players/upgrade-draw', authMiddleware, async (req, res, 
           where: { characterId: character.characterId },
           data: {
             pityCount: currentPityCount,
-          }
-        })
+          },
+        });
 
         return [characterCashUpdate, playerUpdate, characterUpdate];
-
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, // 격리 레벨

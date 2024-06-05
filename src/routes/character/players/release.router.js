@@ -1,11 +1,11 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 
 const router = express.Router();
 
 // 보유 선수 방출 API (JWT 인증)
-router.delete('/character/player/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.delete('/character/players/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const { characterPlayerId } = req.params;

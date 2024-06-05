@@ -1,9 +1,9 @@
 import express from 'express';
 import Joi from 'joi';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
-import Futsal from '../controllers/functions.js';
+import Futsal from '../../../controllers/functions.js';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ function upgrade(targetUpgradeLevel, materialUpgradeLevel) {
 }
 
 // 선수 강화 API 기능 구현 (JWT 인증)
-router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.post('/character/players/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const character = await prisma.character.findUnique({

@@ -1,17 +1,20 @@
 import express from 'express';
-import AccountRouter from './routes/account.router.js';
-import InfoRouter from './routes/info.router.js';
-import CashRouter from '../src/routes/cash.router.js';
-import RosterRouter from '../src/routes/roster.router.js';
-import RankingSystemRouter from '../src/routes/ranking-system.router.js';
-import DrawRouter from './routes/draw.router.js';
-import GameRouter from './routes/game.router.js';
-import UpgradeRouter from './routes/upgrade.router.js';
-import RankGameRouter from './routes/rank-game.router.js';
-import ReleaseRouter from './routes/release.router.js';
-import PlayerRouter from './routes/player.router.js';
-import TransferRouter from './routes/transfer.router.js';
-import TradingRouter from './routes/trading.router.js';
+import AccountRouter from './routes/account/account.router.js';
+import InfoRouter from './routes/character/info.router.js';
+import CashRouter from '../src/routes/character/cash.router.js';
+import RosterRouter from '../src/routes/character/roster.router.js';
+import DataCharacterRosterRouter from '../src/routes/data/character/roster.router.js';
+import RankingSystemRouter from '../src/routes/data/ranking-system.router.js';
+import DrawRouter from './routes/character/content/draw.router.js';
+import GameRouter from './routes/character/content/futsal/game.router.js';
+import RankGameRouter from './routes/character/content/futsal/rank-game.router.js';
+import UpgradeRouter from './routes/character/players/upgrade.router.js';
+import ReleaseRouter from './routes/character/players/release.router.js';
+import PlayerRouter from './routes/character/players/player.router.js';
+import DataPlayerRouter from './routes/data/player.router.js';
+import DataCharacterPlayerRouter from './routes/data/character/player.router.js';
+import TransferRouter from './routes/character/content/transfer.router.js';
+import TradingRouter from './routes/character/players/trading.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
@@ -30,13 +33,16 @@ app.use('/api', [
   InfoRouter,
   CashRouter,
   RosterRouter,
+  DataCharacterRosterRouter,
+  RankingSystemRouter,
   DrawRouter,
   GameRouter,
-  RankingSystemRouter,
-  UpgradeRouter,
   RankGameRouter,
+  UpgradeRouter,
   ReleaseRouter,
   PlayerRouter,
+  DataPlayerRouter,
+  DataCharacterPlayerRouter,
   TransferRouter,
   TradingRouter,
 ]);
