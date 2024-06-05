@@ -47,7 +47,7 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === targetCharacterPlayerId;
     });
 
-    if (!targetCharacterPlayer || targetCharacterPlayer.playerCount < 1) {
+    if (!targetCharacterPlayer) {
       return res.status(400).json({ errorMessage: '강화할 선수가 현재 보유한 선수가 아닙니다.' });
     }
     if (targetCharacterPlayer.upgradeLevel > 4) {
@@ -61,12 +61,12 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === materialCharacterPlayerId;
     });
 
-    if (
-      !materialCharacterPlayer ||
-      materialCharacterPlayer.playerCount < 1 ||
-      (materialCharacterPlayer === targetCharacterPlayer && materialCharacterPlayer.playerCount < 2)
-    ) {
+    if (!materialCharacterPlayer) {
       return res.status(400).json({ errorMessage: '강화 재료 선수가 현재 보유한 선수가 아닙니다.' });
+    }
+
+    if (materialCharacterPlayer === targetCharacterPlayer && materialCharacterPlayer.playerCount < 2) {
+      return res.status(400).json({ errorMessage: '강화 재료 선수의 수량이 부족합니다.' });
     }
 
     if (targetCharacterPlayer.playerId !== materialCharacterPlayer.playerId) {

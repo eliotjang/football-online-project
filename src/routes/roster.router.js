@@ -15,11 +15,11 @@ const characterIdSchema = Joi.object({
 // 출전 선수 명단 유효성 검사
 const rosterSchema = Joi.object({
   roster1PlayerId: Joi.number().integer().required(),
-  roster1UpgradeLevel: Joi.number().integer().required(),
+  roster1UpgradeLevel: Joi.number().integer().min(0).max(5).required(),
   roster2PlayerId: Joi.number().integer().required(),
-  roster2UpgradeLevel: Joi.number().integer().required(),
+  roster2UpgradeLevel: Joi.number().integer().min(0).max(5).required(),
   roster3PlayerId: Joi.number().integer().required(),
-  roster3UpgradeLevel: Joi.number().integer().required(),
+  roster3UpgradeLevel: Joi.number().integer().min(0).max(5).required(),
 });
 
 // 출전 선수 명단 구성 API (JWT 인증)
@@ -92,7 +92,7 @@ router.post('/roster', authMiddleware, async (req, res, next) => {
         roster2PlayerId: roster.roster2PlayerId,
         roster2UpgradeLevel: roster.roster2UpgradeLevel,
         roster3PlayerId: roster.roster3PlayerId,
-        roster1UpgradeLevel: roster.roster1UpgradeLevel,
+        roster3UpgradeLevel: roster.roster3UpgradeLevel,
       },
     });
   } catch (error) {
@@ -209,7 +209,7 @@ router.get('/roster/:characterId', async (req, res, next) => {
       players.push(player);
     }
 
-    return res.status(200).json({ data: players });
+    return res.status(200).json({ message: `${character.name} 캐릭터의 출전 선수 명단입니다.`, data: players });
   } catch (error) {
     next(error);
   }
