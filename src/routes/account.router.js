@@ -17,7 +17,7 @@ const accountSchema = Joi.object({
 });
 
 // 회원가입 API
-router.post('/sign-up', async (req, res, next) => {
+router.post('/account/sign-up', async (req, res, next) => {
   try {
     const validaion = await accountSchema.validateAsync(req.body);
     const { email, password, confirmPassword, name } = validaion;
@@ -80,10 +80,17 @@ router.post('/sign-up', async (req, res, next) => {
   }
 });
 
+// 로그인 유효성 검사
+const signInSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+});
+
 // 로그인 API
-router.post('/sign-in', async (req, res, next) => {
+router.post('/account/sign-in', async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const validaion = await signInSchema.validateAsync(req.body);
+    const { email, password } = validaion;
 
     // 유저 존재 유무 확인
     const account = await prisma.account.findFirst({

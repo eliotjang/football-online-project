@@ -7,24 +7,19 @@ import { Prisma } from '@prisma/client';
 const router = express.Router();
 
 const transferSchema = Joi.object({
-  playerId: Joi.number().required(),
-  upgradeLevel: Joi.number().required(),
+  characterPlayerId: Joi.number().required(),
   offerCash: Joi.number().required(),
 });
 
 // 이적 시장 등록 API
-router.post('/transfer', authMiddleware, async (req, res, next) => {
+router.post('/character/players/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
+    const { characterId, name } = req.character;
     const validation = await transferSchema.validateAsync(req.body);
-    const { playerId, upgradeLevel, offerCash } = validation;
+    const { characterPlayerId, offerCash } = validation;
 
     const characterPlayer = await prisma.characterPlayer.findFirst({
-      where: {
-        CharacterId: characterId,
-        playerId,
-        upgradeLevel,
-      },
+      where: { characterPlayerId },
     });
     if (!characterPlayer) {
       return res.status(404).json({ errorMessage: '해당 선수를 보유하고 있지 않습니다.' });
@@ -32,8 +27,8 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 
     const targetPlayer = await prisma.player.findFirst({
       where: {
-        playerId,
-        upgradeLevel,
+        playerId: characterPlayer.playerId,
+        upgradeLevel: characterPlayer.upgradeLevel,
       },
     });
 
@@ -55,8 +50,8 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
         const transferMarket = await tx.transferMarket.create({
           data: {
             CharacterId: characterId,
-            playerId,
-            upgradeLevel,
+            playerId: characterPlayer.playerId,
+            upgradeLevel: characterPlayer.upgradeLevel,
             offerCash,
           },
         });
@@ -68,17 +63,13 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
       }
     );
 
-    const character = await prisma.character.findFirst({
-      where: { characterId },
-    });
-
     const data = {
       transferMarketId: transferMarket.transferMarketId,
       characterId,
-      characterName: character.name,
-      playerId,
+      characterName: name,
+      playerId: characterPlayer.playerId,
       playerName: targetPlayer.playerName,
-      upgradeLevel,
+      upgradeLevel: characterPlayer.upgradeLevel,
       offerCash,
     };
 
@@ -89,10 +80,8 @@ router.post('/transfer', authMiddleware, async (req, res, next) => {
 });
 
 // 이적 시장 조회 API
-router.get('/transfer', authMiddleware, async (req, res, next) => {
+router.get('/character/players/transfer', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-
     const possibleTransferData = await prisma.transferMarket.findMany({
       where: { transferStatus: false },
     });
@@ -163,9 +152,9 @@ router.get('/transfer', authMiddleware, async (req, res, next) => {
 });
 
 // 이적 시장 구매 API
-router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
+router.post('/character/players/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
+    const { characterId, cash, name } = req.character;
     const { transferMarketId } = req.params;
 
     const transferMarket = await prisma.transferMarket.findFirst({
@@ -175,18 +164,14 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '존재하지 않는 이적 시장입니다.' });
     }
-    if (transferMarket.status === 'true') {
+    if (transferMarket.transferStatus === true) {
       return res.status(400).json({ errorMessage: '이적이 완료된 이적 시장입니다.' });
     }
     if (characterId === transferMarket.CharacterId) {
       return res.status(400).json({ errorMessage: '본인이 등록한 선수는 구매하지 못합니다' });
     }
 
-    const transferCharacter = await prisma.character.findFirst({
-      where: { characterId },
-    });
-
-    if (transferCharacter.cash < transferMarket.offerCash) {
+    if (cash < transferMarket.offerCash) {
       return res.status(400).json({ errorMessage: '보유하고 있는 캐시가 부족합니다.' });
     }
 
@@ -250,10 +235,10 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
     );
-
     const character = await prisma.character.findFirst({
-      where: { characterId: transferMarket.CharacterId },
-    });
+      where: {characterId: transferMarket.CharacterId}
+    })
+
     const targetPlayer = await prisma.player.findFirst({
       where: {
         playerId: transferMarket.playerId,
@@ -270,7 +255,7 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
       upgradeLevel: transferMarket.upgradeLevel,
       offerCash: transferMarket.offerCash,
       transferCharacterId: characterId,
-      transferCharacterName: transferCharacter.name,
+      transferCharacterName: name,
     };
 
     return res.status(200).json({ message: '이적이 성공적으로 완료되었습니다.', data });
@@ -280,9 +265,9 @@ router.post('/transfer/:transferMarketId', authMiddleware, async (req, res, next
 });
 
 // 이적 등록 취소 API
-router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
+router.delete('/character/players/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
+    const { characterId, name } = req.character;
     const { transferMarketId } = req.params;
 
     const transferMarket = await prisma.transferMarket.findFirst({
@@ -332,9 +317,6 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
       }
     );
-    const character = await prisma.character.findFirst({
-      where: { characterId },
-    });
     const targetPlayer = await prisma.player.findFirst({
       where: {
         playerId: transferMarket.playerId,
@@ -345,7 +327,7 @@ router.delete('/transfer/:transferMarketId', authMiddleware, async (req, res, ne
     const data = {
       transferMarketId: transferMarket.transferMarketId,
       characterId: transferMarket.CharacterId,
-      characterName: character.name,
+      characterName: name,
       playerId: transferMarket.playerId,
       playerName: targetPlayer.playerName,
       upgradeLevel: transferMarket.upgradeLevel,
