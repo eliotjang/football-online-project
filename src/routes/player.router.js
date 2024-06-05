@@ -10,19 +10,13 @@ const upgradeLevelSchema = Joi.object({
 });
 
 // 보유 선수 목록 조회 (본인 팀) API (JWT 인증)
-router.get('/players', authMiddleware, async (req, res, next) => {
+router.get('/character/players', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
 
-    const character = await prisma.character.findFirst({
-      where: {
-        characterId,
-      },
-    });
-
     const characterPlayers = await prisma.characterPlayer.findMany({
       where: {
-        CharacterId: character.characterId,
+        CharacterId: characterId,
       },
     });
 
