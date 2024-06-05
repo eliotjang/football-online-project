@@ -9,6 +9,10 @@ const upgradeLevelSchema = Joi.object({
   upgradeLevel: Joi.number().integer().min(0).max(5).required(),
 });
 
+const playerIdSchema = Joi.object({
+  playerId: Joi.number().integer().required(),
+});
+
 // 보유 선수 목록 조회 (본인 팀) API (JWT 인증)
 router.get('/players', authMiddleware, async (req, res, next) => {
   try {
@@ -120,7 +124,7 @@ router.get('/database/players', async (req, res, next) => {
 router.get('/database/player/:playerId', async (req, res, next) => {
   // 데이터 베이스 단일 선수 목록 조회
   try {
-    const { playerId } = req.params;
+    const { playerId } = await playerIdSchema.validateAsync(req.params);
     const { upgradeLevel } = await upgradeLevelSchema.validateAsync(req.body);
 
     const player = await prisma.player.findFirst({
@@ -131,7 +135,7 @@ router.get('/database/player/:playerId', async (req, res, next) => {
     });
 
     if (!player) {
-      res.status(400).json({ message: '존재하지 않는 캐릭터 입니다.' });
+      res.status(400).json({ message: '존재하지 않는 선수 입니다.' });
     }
 
     res.status(200).json({ player });
