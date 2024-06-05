@@ -5,7 +5,7 @@ import { prisma } from '../utils/prisma/index.js';
 const router = express.Router();
 
 // 랭크 풋살 게임 API (JWT 인증)
-router.post('/games/play', authMiddleware, async (req, res, next) => {
+router.post('/game-content/futsal/rank-game', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const myCharacter = await prisma.character.findUnique({
@@ -292,7 +292,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       });
 
       return res.status(200).json({
-        message: `${myCharacter.name} 팀이 비겼습니다. 치열했네요!`,
+        message: `${targetData.name} 팀과 비겼습니다. 치열했네요!`,
         result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
         gameLog: gameLog,
       });

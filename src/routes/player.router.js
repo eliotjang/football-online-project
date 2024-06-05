@@ -50,7 +50,7 @@ router.get('/character/players', authMiddleware, async (req, res, next) => {
 });
 
 // 보유 선수 목록 조회 (타 팀) API
-router.get('/player/:characterId', async (req, res, next) => {
+router.get('/character/players/:characterId', async (req, res, next) => {
   try {
     const { characterId } = req.params;
 
