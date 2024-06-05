@@ -279,6 +279,9 @@ router.delete('/character/players/transfer/:transferMarketId', authMiddleware, a
     if (!transferMarket) {
       return res.status(404).json({ errorMessage: '해당 이적 시장이 존재하지 않습니다.' });
     }
+    if (transferMarket.transferStatus === true) {
+      return res.status(400).json({ errorMessage: '이적이 완료된 이적 시장입니다.' });
+    }
 
     if (characterId !== transferMarket.CharacterId) {
       return res.status(400).json({ errorMessage: '해당 선수를 이적 시장에 등록한 캐릭터가 아닙니다.' });
