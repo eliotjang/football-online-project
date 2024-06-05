@@ -292,7 +292,7 @@ router.post('/game-content/futsal/rank-game', authMiddleware, async (req, res, n
       });
 
       return res.status(200).json({
-        message: `${myCharacter.name} 팀이 비겼습니다. 치열했네요!`,
+        message: `${targetData.name} 팀과 비겼습니다. 치열했네요!`,
         result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
         gameLog: gameLog,
       });

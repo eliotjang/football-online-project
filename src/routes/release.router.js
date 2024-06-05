@@ -15,7 +15,7 @@ router.delete('/character/player/:characterPlayerId', authMiddleware, async (req
     const characterPlayer = await prisma.characterPlayer.findUnique({
       where: { characterPlayerId: +characterPlayerId },
     });
-    if (!characterPlayer) {
+    if (!characterPlayer || characterPlayer.CharacterId !== characterId) {
       return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 보유 선수입니다.' });
     }
 
