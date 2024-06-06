@@ -8,11 +8,10 @@ const router = express.Router();
 router.post('/character/content/futsal/rank-game', authMiddleware, async (req, res, next) => {
   try {
     const myCharacter = req.character;
-    const characterId = myCharacter.characterId;
 
     const isExistRoster = await prisma.roster.findUnique({
       where: {
-        CharacterId: characterId,
+        CharacterId: myCharacter.characterId,
       },
     });
     if (!isExistRoster) {

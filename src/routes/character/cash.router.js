@@ -7,11 +7,10 @@ const router = express.Router();
 // 캐시 구매 API (JWT 인증)
 router.patch('/character/cash', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-    const character = await prisma.character.findUnique({ where: { characterId } });
+    const character = req.character;
     const changedCharacter = await prisma.character.update({
       where: {
-        characterId,
+        characterId: character.characterId,
       },
       data: {
         cash: { increment: 1000 },
