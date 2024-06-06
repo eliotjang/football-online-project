@@ -99,7 +99,12 @@ router.post('/account/sign-in', async (req, res, next) => {
     );
 
     res.cookie('authorization', `Bearer ${token}`);
-    return res.status(200).json({ message: '로그인에 성공했습니다.' });
+    return res.status(200).json({
+      message: '로그인에 성공했습니다.',
+      data: {
+        token: token,
+      },
+    });
   } catch (err) {
     next(err);
   }

@@ -150,19 +150,19 @@ router.post('/character/content/futsal/game/:opponentCharacterId', authMiddlewar
 
     if (teamAScore > teamBScore) {
       return res.status(200).json({
-        message: `유저 ${teamACharacter.name} 승리!`,
+        message: `${teamACharacter.name} 팀이 승리했습니다. 축하드립니다!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });
     } else if (teamAScore < teamBScore) {
       return res.status(200).json({
-        message: `유저 ${teamBCharacter.name} 승리!`,
+        message: `${teamACharacter.name} 팀이 패배했습니다. 좋은 선수로 구성해보세요!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });
     } else if (teamAScore == teamBScore) {
       return res.status(200).json({
-        message: `무승부!`,
+        message: `${teamBCharacter.name} 팀과 비겼습니다. 치열했네요!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });

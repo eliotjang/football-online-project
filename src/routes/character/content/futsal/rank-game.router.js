@@ -154,7 +154,6 @@ router.post('/character/content/futsal/rank-game', authMiddleware, async (req, r
     let myGoal = 0;
     let targetGoal = 0;
     const gameLog = [];
-    gameLog.push('[경기 실시간 골 점수 기록]');
 
     let characterId1Win = false;
     let characterId1Draw = false;
