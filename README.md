@@ -43,17 +43,15 @@
 ![alt text](./assets/figma-image.png)
 
 ### 프론트엔드 구현
+
 - 메인 화면  
-![alt text](./assets/main-image.png)
+  ![alt text](./assets/main-image.png)
 
 - 로그인 화면  
-![alt text](./assets/sign-in-image.png)
+  ![alt text](./assets/sign-in-image.png)
 
 - 예시 (랭킹 조회)  
-![alt text](./assets/ranking-image.png)
-
-
-
+  ![alt text](./assets/ranking-image.png)
 
 ### 설계 및 구현
 
@@ -122,25 +120,27 @@
     - 랭킹 점수를 기준으로 내림차순 정렬
     - 등수, 랭킹 점수, 승률, 승무패 기록 출력
   - 선수 강화
+
     - 로그인 후 강화 가능
     - 강화할 선수와 동일한 선수만 강화 재료로 선정 가능
     - 5강까지 강화 가능
     - 실패 시 강화 재료는 소진되고 강화 대상은 0강으로 강등
     - 강화 성공 시 모든 스텟 +3, 가치 -> 기본 가치 \* 2^강화 레벨
     - 강화 확률 선정 기준
-        - 0강 + 0강 = 100%
-        - 1강 + 1강 = 80%
-        - 2강 + 2강 = 60%
-        - 3강 + 3강 = 40%
-        - 4강 + 4강 = 20%
-        - 강화 대상의 강화 레벨 = 강화 재료의 강화 레벨  
+      - 0강 + 0강 = 100%
+      - 1강 + 1강 = 80%
+      - 2강 + 2강 = 60%
+      - 3강 + 3강 = 40%
+      - 4강 + 4강 = 20%
+      - 강화 대상의 강화 레벨 = 강화 재료의 강화 레벨  
         -> 고유 확률 (ex. 0강 + 0강 = 100%, 3강 + 3강 = 40%)
-        - 강화 대상의 강화 레벨 < 강화 재료의 강화 레벨  
+      - 강화 대상의 강화 레벨 < 강화 재료의 강화 레벨  
         -> 100%
-        - 강화 대상의 강화 레벨 > 강화 재료의 강화 레벨  
-        -> 강화 대상의 강화 레벨 - 강화 재료의 강화 레벨의 고유 확률을 곱함  
-        (ex. 2강 + 1강 = 60% * 80% = 48%, 4강 + 1강 = 20% * 40% = 8%)
-      ![alt text](./assets/upgrade-image.png)
+      - 강화 대상의 강화 레벨 > 강화 재료의 강화 레벨  
+         -> 강화 대상의 강화 레벨 - 강화 재료의 강화 레벨의 고유 확률을 곱함  
+         (ex. 2강 + 1강 = 60% _ 80% = 48%, 4강 + 1강 = 20% _ 40% = 8%)
+        ![alt text](./assets/upgrade-image.png)
+
   - 강화 선수 뽑기
 
     - 로그인 후 뽑기 가능
@@ -238,9 +238,10 @@ src/
 │ │ └── account.router.js
 │ ├── character/
 │ │ ├── content/
+│ │ │ ├── futsal/
+│ │ │ │ ├── game.router.js
+│ │ │ │ └── transfer.router.js
 │ │ │ ├── draw.router.js
-│ │ │ ├── game.router.js
-│ │ │ ├── rank-game.router.js
 │ │ │ └── transfer.router.js
 │ │ ├── players
 │ │ │ ├── player.router.js
@@ -252,6 +253,9 @@ src/
 │ │ └── roster.router.js
 │ ├── data/
 │ │ ├── character/
+│ │ │ ├── player.router.js
+│ │ │ └── roster.router.js
+│ │ ├── player.router.js
 │ │ └── ranking-system.router.js
 ├── utils/
 │ ├── prisma/
