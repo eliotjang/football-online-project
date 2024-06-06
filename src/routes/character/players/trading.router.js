@@ -198,7 +198,7 @@ router.patch('/character/players/trading/:characterPlayerId', authMiddleware, as
       message: `${myPlayer.playerName} 선수와 ${targetPlayer.playerName} 선수의 트레이딩이 완료되었습니다.`,
       cashMessage: `선수 트레이드 비용으로 ${compareValuePrice} 캐시가 소모되었습니다.`,
       myData: {
-        charcterName: myCharacter.name,
+        characterName: myCharacter.name,
         beforeTradePlayer: {
           playerName: myPlayer.playerName,
           characterPlayer: {
@@ -214,7 +214,7 @@ router.patch('/character/players/trading/:characterPlayerId', authMiddleware, as
         },
       },
       targetData: {
-        charcterName: targetCharacter.name,
+        characterName: targetCharacter.name,
         beforeTradePlayer: {
           playerName: targetPlayer.playerName,
           characterPlayer: {

@@ -4,11 +4,8 @@ import Joi from 'joi';
 
 const router = express.Router();
 
-const upgradeLevelSchema = Joi.object({
-  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
-});
-
 const playerIdSchema = Joi.object({
+  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
   playerId: Joi.number().integer().required(),
 });
 
@@ -30,11 +27,10 @@ router.get('/data/players', async (req, res, next) => {
   }
 });
 
-router.get('/data/player/:playerId', async (req, res, next) => {
+router.get('/data/player/:playerId/:upgradeLevel', async (req, res, next) => {
   // 데이터 베이스 단일 선수 목록 조회
   try {
-    const { playerId } = await playerIdSchema.validateAsync(req.params);
-    const { upgradeLevel } = await upgradeLevelSchema.validateAsync(req.body);
+    const { playerId, upgradeLevel } = await playerIdSchema.validateAsync(req.params);
 
     const player = await prisma.player.findFirst({
       where: {
