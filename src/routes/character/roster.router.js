@@ -7,11 +7,6 @@ import Futsal from '../../controllers/functions.js';
 
 const router = express.Router();
 
-// 캐릭터 아이디 유효성 검사
-const characterIdSchema = Joi.object({
-  characterId: Joi.number().integer().required(),
-});
-
 // 출전 선수 명단 유효성 검사
 const rosterSchema = Joi.object({
   characterPlayerId1: Joi.number().integer().required(),
