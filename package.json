@@ -7,8 +7,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "singin": "parcel ./assets/html/signin.html --port 5501",
-    "main": "parcel ./assets/html/main.html --port 5501",
+    "client": "parcel ./assets/html/signin.html --port 5501",
     "server": "nodemon src/app.js",
     "dev": "concurrently \"yarn run server\" \"yarn run client\""
   },
