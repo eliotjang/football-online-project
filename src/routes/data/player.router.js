@@ -1,16 +1,8 @@
 import express from 'express';
 import { prisma } from '../../utils/prisma/index.js';
-import Joi from 'joi';
+import { playerIdSchema, upgradeLevelSchema } from '../../utils/joi-schema.js';
 
 const router = express.Router();
-
-const upgradeLevelSchema = Joi.object({
-  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
-});
-
-const playerIdSchema = Joi.object({
-  playerId: Joi.number().integer().required(),
-});
 
 // 데이터 베이스 선수 목록 조회
 router.get('/data/players', async (req, res, next) => {

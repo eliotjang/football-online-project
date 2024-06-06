@@ -1,21 +1,9 @@
 import express from 'express';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
 import { prisma } from '../../../utils/prisma/index.js';
-import Joi from 'joi';
+import { tradeSchema, characterPlayerIdSchema } from '../../../utils/joi-schema.js';
 
 const router = express.Router();
-
-// 트레이딩 유효성 검사
-const tradeSchema = Joi.object({
-  tradeCharacterId: Joi.number().integer().min(0).required(),
-  tradeCharacterPlayerId: Joi.number().integer().min(0).required(),
-  offerCash: Joi.number().integer().min(0).required(),
-});
-
-// 보유 선수 아이디 유효성 검사
-const characterPlayerIdSchema = Joi.object({
-  characterPlayerId: Joi.number().integer().required(),
-});
 
 // 선수 트레이딩 API (JWT 인증)
 router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {

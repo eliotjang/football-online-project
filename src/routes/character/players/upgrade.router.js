@@ -1,21 +1,11 @@
 import express from 'express';
-import Joi from 'joi';
+import { characterPlayerIdSchema, upgradeMaterialSchema } from '../../../utils/joi-schema.js';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
 import { prisma } from '../../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
 import Futsal from '../../../controllers/functions.js';
 
 const router = express.Router();
-
-// 강화 선수 유효성 검사
-const targetCharacterPlayerSchema = Joi.object({
-  characterPlayerId: Joi.number().integer().required(),
-});
-
-// 강화 재료 선수 유효성 검사
-const upgradeMaterialSchema = Joi.object({
-  upgradeMaterial: Joi.number().integer().required(),
-});
 
 // 강화 성공 시 true, 실패 시 false 반환
 function upgrade(targetUpgradeLevel, materialUpgradeLevel) {
@@ -40,7 +30,7 @@ router.post('/character/players/:characterPlayerId/upgrade', authMiddleware, asy
       include: { CharacterPlayer: true },
     });
 
-    const paramsValidation = await targetCharacterPlayerSchema.validateAsync(req.params);
+    const paramsValidation = await characterPlayerIdSchema.validateAsync(req.params);
     const { characterPlayerId: targetCharacterPlayerId } = paramsValidation;
 
     const targetCharacterPlayer = character.CharacterPlayer.find((characterPlayer) => {

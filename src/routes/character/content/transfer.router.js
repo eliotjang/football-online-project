@@ -1,15 +1,10 @@
 import express from 'express';
 import { prisma } from '../../../utils/prisma/index.js';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
-import Joi from 'joi';
 import { Prisma } from '@prisma/client';
+import { transferSchema, transferMarketIdSchema } from '../../../utils/joi-schema.js';
 
 const router = express.Router();
-
-const transferSchema = Joi.object({
-  characterPlayerId: Joi.number().required(),
-  offerCash: Joi.number().required(),
-});
 
 // 이적 시장 등록 API
 router.post('/character/content/transfer', authMiddleware, async (req, res, next) => {
@@ -152,11 +147,6 @@ router.get('/character/content/transfer', authMiddleware, async (req, res, next)
   } catch (err) {
     next(err);
   }
-});
-
-// 이적 시장 아이디 유효성 검사
-const transferMarketIdSchema = Joi.object({
-  transferMarketId: Joi.number().integer().required(),
 });
 
 // 이적 시장 구매 API

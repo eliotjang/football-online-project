@@ -1,14 +1,9 @@
 import express from 'express';
-import Joi from 'joi';
+import { characterPlayerIdSchema } from '../../../utils/joi-schema.js';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
 import { prisma } from '../../../utils/prisma/index.js';
 
 const router = express.Router();
-
-// 보유 선수 아이디 유효성 검사
-const characterPlayerIdSchema = Joi.object({
-  characterPlayerId: Joi.number().integer().required(),
-});
 
 // 보유 선수 방출 API (JWT 인증)
 router.delete('/character/players/:characterPlayerId', authMiddleware, async (req, res, next) => {
