@@ -136,7 +136,7 @@ router.get('/character/content/transfer', authMiddleware, async (req, res, next)
         playerName: targetPlayer.playerName,
         upgradeLevel: impossibleMarket.upgradeLevel,
         offerCash: impossibleMarket.offerCash,
-        transferCharacterId: transferCharacter.transferCharacterId,
+        transferCharacterId: transferCharacter.characterId,
         transferCharacterName: transferCharacter.name,
       };
 
