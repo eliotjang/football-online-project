@@ -34,7 +34,7 @@
 
   document.forms[0].addEventListener('submit', async function (e) {
     e.preventDefault();
-    const res = await fetch('http://13.209.73.219:3000/api/account/sign-in', {
+    const res = await fetch('http://eliotjang.shop:3000/api/account/sign-in', {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -52,6 +52,6 @@
     setCookie('authorization', `Bearer ${result.data.token}`, 3600);
 
     console.log(result.message);
-    location.href = 'http://13.209.73.219:5501/main.html';
+    location.href = 'http://eliotjang.shop:5501/main.html';
   });
 </script>

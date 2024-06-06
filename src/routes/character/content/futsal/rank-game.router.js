@@ -56,8 +56,7 @@ router.post('/character/content/futsal/rank-game', authMiddleware, async (req, r
 
     // 점수 오름차순 정렬
     userData.sort((a, b) => {
-      if (a.rankScore > b.rankScore) return 1;
-      if (a.rankScore < b.rankScore) return -1;
+      return a.rankScore - b.rankScore;
     });
 
     // 점수 기반 상대 지정 (가장 가까운 점수)
