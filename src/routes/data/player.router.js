@@ -9,8 +9,8 @@ const playerIdSchema = Joi.object({
   playerId: Joi.number().integer().required(),
 });
 
+// 데이터 베이스 선수 목록 조회
 router.get('/data/players', async (req, res, next) => {
-  // 데이터 베이스 선수 목록 조회
   try {
     const player = await prisma.player.findMany({
       where: {

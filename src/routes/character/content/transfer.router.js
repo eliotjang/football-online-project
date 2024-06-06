@@ -154,11 +154,16 @@ router.get('/character/content/transfer', authMiddleware, async (req, res, next)
   }
 });
 
+// 이적 시장 아이디 유효성 검사
+const transferMarketIdSchema = Joi.object({
+  transferMarketId: Joi.number().integer().required(),
+});
+
 // 이적 시장 구매 API
 router.post('/character/content/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId, cash, name } = req.character;
-    const { transferMarketId } = req.params;
+    const { transferMarketId } = await transferMarketIdSchema.validateAsync(req.params);
 
     const transferMarket = await prisma.transferMarket.findFirst({
       where: { transferMarketId: +transferMarketId },
@@ -271,7 +276,7 @@ router.post('/character/content/transfer/:transferMarketId', authMiddleware, asy
 router.delete('/character/content/transfer/:transferMarketId', authMiddleware, async (req, res, next) => {
   try {
     const { characterId, name } = req.character;
-    const { transferMarketId } = req.params;
+    const { transferMarketId } = await transferMarketIdSchema.validateAsync(req.params);
 
     const transferMarket = await prisma.transferMarket.findFirst({
       where: { transferMarketId: +transferMarketId },

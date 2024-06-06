@@ -5,21 +5,27 @@ import Joi from 'joi';
 
 const router = express.Router();
 
+// 트레이딩 유효성 검사
 const tradeSchema = Joi.object({
   tradeCharacterId: Joi.number().integer().min(0).required(),
   tradeCharacterPlayerId: Joi.number().integer().min(0).required(),
   offerCash: Joi.number().integer().min(0).required(),
 });
 
+// 보유 선수 아이디 유효성 검사
+const characterPlayerIdSchema = Joi.object({
+  characterPlayerId: Joi.number().integer().required(),
+});
+
 // 선수 트레이딩 API (JWT 인증)
-router.patch('/character/players/trading/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-    const { characterPlayerId } = req.params;
+    const { characterPlayerId } = await characterPlayerIdSchema.validateAsync(req.params);
     const { tradeCharacterId, tradeCharacterPlayerId, offerCash } = await tradeSchema.validateAsync(req.body);
 
     // 사용자 및 상대 캐릭터
-    const myCharacter = await prisma.character.findUnique({ where: { characterId } });
+    const myCharacter = req.character;
+    const characterId = myCharacter.characterId;
     const targetCharacter = await prisma.character.findUnique({ where: { characterId: tradeCharacterId } });
 
     if (!myCharacter || !targetCharacter) {

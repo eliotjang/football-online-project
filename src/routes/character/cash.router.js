@@ -17,7 +17,7 @@ router.patch('/character/cash', authMiddleware, async (req, res, next) => {
     const character = await prisma.character.findUnique({ where: { characterId } });
     const changedCharacter = await prisma.character.update({
       where: {
-        characterId,
+        characterId: character.characterId,
       },
       data: {
         cash: { increment: cash },

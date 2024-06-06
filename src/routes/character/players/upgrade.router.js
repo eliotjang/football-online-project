@@ -32,7 +32,7 @@ function upgrade(targetUpgradeLevel, materialUpgradeLevel) {
 }
 
 // 선수 강화 API 기능 구현 (JWT 인증)
-router.post('/character/players/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.post('/character/players/:characterPlayerId/upgrade', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const character = await prisma.character.findUnique({

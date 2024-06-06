@@ -11,7 +11,7 @@ const characterIdSchema = Joi.object({
 });
 
 // 출전 선수 명단 조회 API
-router.get('/data/character/roster/:characterId', async (req, res, next) => {
+router.get('/data/character/:characterId/roster', async (req, res, next) => {
   try {
     const validation = await characterIdSchema.validateAsync(req.params);
     const { characterId } = validation;
