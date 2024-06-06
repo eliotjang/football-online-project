@@ -137,7 +137,7 @@
       - 강화 대상의 강화 레벨 < 강화 재료의 강화 레벨  
         -> 100%
       - 강화 대상의 강화 레벨 > 강화 재료의 강화 레벨  
-         -> 강화 대상의 강화 레벨 - 강화 재료의 강화 레벨의 고유 확률을 곱함  
+         -> (강화 대상의 강화 레벨 - 강화 재료의 강화 레벨)의 고유 확률을 곱함  
          (ex. 2강 + 1강 = 60% _ 80% = 48%, 4강 + 1강 = 20% _ 40% = 8%)
         ![alt text](./assets/upgrade-image.png)
 
@@ -222,6 +222,14 @@
 ### 폴더 구조
 
 ```markdown
+.vscode/
+└── settings.josn
+
+assets/
+├── html/
+│├── main.html
+│└── singin.html
+└──
 node_modules/
 
 prisma/
@@ -260,7 +268,8 @@ src/
 ├── utils/
 │ ├── prisma/
 │ │ └── index.js
-│ └── configs.js
+│ ├── config.js
+│ └── joi-schema.js
 └── app.js
 
 .env
