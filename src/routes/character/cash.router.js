@@ -12,9 +12,8 @@ const cashSchema = Joi.object({
 // 캐시 구매 API (JWT 인증)
 router.patch('/character/cash', authMiddleware, async (req, res, next) => {
   try {
+    const character = req.character;
     const { cash } = await cashSchema.validateAsync(req.body);
-    const { characterId } = req.character;
-    const character = await prisma.character.findUnique({ where: { characterId } });
     const changedCharacter = await prisma.character.update({
       where: {
         characterId: character.characterId,

@@ -1,13 +1,9 @@
 import express from 'express';
 import authMiddleware from '../../../../middlewares/auth.middleware.js';
 import { prisma } from '../../../../utils/prisma/index.js';
-import Joi from 'joi';
+import { opponentCharacterIdSchema } from '../../../../utils/joi-schema.js';
 
 const router = express.Router();
-
-const opponentCharacterIdSchema = Joi.object({
-  characterId: Joi.number().integer().required(),
-});
 
 // 일반(상대지정) 풋살 게임 API
 router.post('/character/content/futsal/game/:opponentCharacterId', authMiddleware, async (req, res, next) => {

@@ -211,7 +211,7 @@
     try {
       const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인하세요.');
       if (!characterId) return 0;
-      const res = await fetch(`http://localhost:3000/api/data/character/players/${characterId}`, {
+      const res = await fetch(`http://localhost:3000/api/data/character/${characterId}/players`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -488,7 +488,7 @@
   const getOtherRoster = async () => {
     try {
       const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
-      const res = await fetch(`http://localhost:3000/api/data/character/roster/${characterId}`, {
+      const res = await fetch(`http://localhost:3000/api/data/character/${characterId}/roster`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -528,8 +528,8 @@
   // 일반(상대 지정) 풋살 게임
   const game = async () => {
     try {
-      const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
-      const res = await fetch(`http://localhost:3000/api/character/content/futsal/game/${characterId}`, {
+      const opponentCharacterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
+      const res = await fetch(`http://localhost:3000/api/character/content/futsal/game/${opponentCharacterId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -599,7 +599,7 @@
         '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
       );
       if (!upgradeMaterial) return 0;
-      const res = await fetch(`http://localhost:3000/api/character/players/upgrade/${characterPlayerId}`, {
+      const res = await fetch(`http://localhost:3000/api/character/players/${characterPlayerId}/upgrade`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -707,7 +707,7 @@
       );
       if (!offerCash) return 0;
 
-      const res = await fetch(`http://localhost:3000/api/character/players/trading/${characterPlayerId}`, {
+      const res = await fetch(`http://localhost:3000/api/character/players/${characterPlayerId}/trading`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -902,7 +902,7 @@
         '구매할 이적 선수의 이적 시장 ID를 입력하세요.',
         '[이적 시장 조회]를 클릭하여 확인하세요.'
       );
-      if (transferMarketId) return 0;
+      if (!transferMarketId) return 0;
       const res = await fetch(`http://localhost:3000/api/character/content/transfer/${transferMarketId}`, {
         method: 'POST',
         headers: {

@@ -1,5 +1,5 @@
 import express from 'express';
-import Joi from 'joi';
+import { accountSchema, signInSchema } from '../../utils/joi-schema.js';
 import { prisma } from '../../utils/prisma/index.js';
 import bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
@@ -7,14 +7,6 @@ import jwt from 'jsonwebtoken';
 import configs from '../../utils/configs.js';
 
 const router = express.Router();
-
-// 회원가입 유효성 검사
-const accountSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-  name: Joi.string().required(),
-});
 
 // 회원가입 API
 router.post('/account/sign-up', async (req, res, next) => {
@@ -78,12 +70,6 @@ router.post('/account/sign-up', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-// 로그인 유효성 검사
-const signInSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
 });
 
 // 로그인 API

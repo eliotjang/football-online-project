@@ -18,17 +18,17 @@ model Account {
 }
 
 model Character {
-  characterId       Int    @id @default(autoincrement()) @map("character_id")
-  AccountId         Int    @unique @map("account_id")
-  name              String @unique @map("name")
-  cash              Int    @default(10000) @map("cash")
-  releaseCount      Int    @default(0) @map("release_count")
-  rankScore         Int    @default(1000) @map("rankScore")
-  pityCount         Int    @default(0) @map("pityCount")
+  characterId  Int    @id @default(autoincrement()) @map("character_id")
+  AccountId    Int    @unique @map("account_id")
+  name         String @unique @map("name")
+  cash         Int    @default(10000) @map("cash")
+  releaseCount Int    @default(0) @map("release_count")
+  rankScore    Int    @default(1000) @map("rankScore")
+  pityCount    Int    @default(0) @map("pityCount")
 
   CharacterPlayer CharacterPlayer[]
   Roster          Roster?
-  TransferMarket TransferMarket[]
+  TransferMarket  TransferMarket[]
 
   Account Account @relation(fields: [AccountId], references: [accountId], onDelete: Cascade)
 
@@ -100,11 +100,10 @@ model TransferMarket {
   playerId            Int     @map("player_id")
   upgradeLevel        Int     @map("upgrade_level")
   offerCash           Int     @map("offer_cash")
-  transferCharacterId Int?    @map("transfer_character_id") 
+  transferCharacterId Int?    @map("transfer_character_id")
   transferStatus      Boolean @default(false)
 
   Character Character @relation(fields: [CharacterId], references: [characterId], onDelete: Cascade)
-
 
   @@map("transfer_market")
 }

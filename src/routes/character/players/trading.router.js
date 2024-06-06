@@ -1,21 +1,9 @@
 import express from 'express';
 import authMiddleware from '../../../middlewares/auth.middleware.js';
 import { prisma } from '../../../utils/prisma/index.js';
-import Joi from 'joi';
+import { tradeSchema, characterPlayerIdSchema } from '../../../utils/joi-schema.js';
 
 const router = express.Router();
-
-// 트레이딩 유효성 검사
-const tradeSchema = Joi.object({
-  tradeCharacterId: Joi.number().integer().min(0).required(),
-  tradeCharacterPlayerId: Joi.number().integer().min(0).required(),
-  offerCash: Joi.number().integer().min(0).required(),
-});
-
-// 보유 선수 아이디 유효성 검사
-const characterPlayerIdSchema = Joi.object({
-  characterPlayerId: Joi.number().integer().required(),
-});
 
 // 선수 트레이딩 API (JWT 인증)
 router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {
@@ -28,7 +16,7 @@ router.patch('/character/players/:characterPlayerId/trading', authMiddleware, as
     const characterId = myCharacter.characterId;
     const targetCharacter = await prisma.character.findUnique({ where: { characterId: tradeCharacterId } });
 
-    if (!myCharacter || !targetCharacter) {
+    if (!myCharacter || !targetCharacter || myCharacter.characterId === targetCharacter.characterId) {
       return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터입니다.' });
     }
 

@@ -1,14 +1,9 @@
 import express from 'express';
-import Joi from 'joi';
+import { characterIdSchema } from '../../../utils/joi-schema.js';
 import { prisma } from '../../../utils/prisma/index.js';
 import Futsal from '../../../controllers/functions.js';
 
 const router = express.Router();
-
-// 캐릭터 아이디 유효성 검사
-const characterIdSchema = Joi.object({
-  characterId: Joi.number().integer().required(),
-});
 
 // 출전 선수 명단 조회 API
 router.get('/data/character/:characterId/roster', async (req, res, next) => {

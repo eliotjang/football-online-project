@@ -1,18 +1,11 @@
 import express from 'express';
-import Joi from 'joi';
+import { rosterSchema } from '../../utils/joi-schema.js';
 import authMiddleware from '../../middlewares/auth.middleware.js';
 import { prisma } from '../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
 import Futsal from '../../controllers/functions.js';
 
 const router = express.Router();
-
-// 출전 선수 명단 유효성 검사
-const rosterSchema = Joi.object({
-  characterPlayerId1: Joi.number().integer().required(),
-  characterPlayerId2: Joi.number().integer().required(),
-  characterPlayerId3: Joi.number().integer().required(),
-});
 
 // 출전 선수 명단 구성 API (JWT 인증)
 router.post('/character/roster', authMiddleware, async (req, res, next) => {
