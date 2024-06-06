@@ -5,24 +5,24 @@ import Joi from 'joi';
 
 const router = express.Router();
 
-const characterIdSchema = Joi.object({
+const opponentCharacterIdSchema = Joi.object({
   characterId: Joi.number().integer().required(),
 });
 
 // 일반(상대지정) 풋살 게임 API
-router.post('/character/content/futsal/game/:characterId', authMiddleware, async (req, res, next) => {
+router.post('/character/content/futsal/game/:opponentCharacterId', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = await characterIdSchema.validateAsync(req.params);
+    const { opponentCharacterId } = await opponentCharacterIdSchema.validateAsync(req.params);
 
     const teamACharacter = req.character;
 
-    if (characterId == teamACharacter.characterId) {
+    if (opponentCharacterId == teamACharacter.characterId) {
       return res.status(400).json({ message: '자신말고 상대를 지정해 주기 바랍니다.' });
     }
 
     const teamBCharacter = await prisma.character.findFirst({
       where: {
-        characterId: +characterId,
+        characterId: +opponentCharacterId,
       },
     });
 

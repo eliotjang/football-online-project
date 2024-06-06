@@ -18,7 +18,7 @@ const characterPlayerIdSchema = Joi.object({
 });
 
 // 선수 트레이딩 API (JWT 인증)
-router.patch('/character/players/trading/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const { characterPlayerId } = await characterPlayerIdSchema.validateAsync(req.params);
