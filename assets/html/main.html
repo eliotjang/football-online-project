@@ -92,7 +92,7 @@
   const authorization = getCookieValue('authorization');
   if (!authorization) {
     alert('로그인 해 주세요');
-    location.href = 'signin.html';
+    location.href = 'http://13.209.73.219:5501/signin.html';
   }
 
   function getCookieValue(name) {
@@ -113,7 +113,7 @@
   // 로그아웃
   function logout() {
     setCookie('authorization', '', 0);
-    location.href = 'signin.html';
+    location.href = 'http://13.209.73.219:5501/signin.html';
   }
 
   // 전체 랭킹 조회
