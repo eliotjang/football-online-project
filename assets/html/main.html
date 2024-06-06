@@ -92,7 +92,7 @@
   const authorization = getCookieValue('authorization');
   if (!authorization) {
     alert('로그인 해 주세요');
-    location.href = 'http://13.209.73.219:5501/signin.html';
+    location.href = 'http://eliotjang.shop:5501/signin.html';
   }
 
   function getCookieValue(name) {
@@ -113,13 +113,13 @@
   // 로그아웃
   function logout() {
     setCookie('authorization', '', 0);
-    location.href = 'http://13.209.73.219:5501/signin.html';
+    location.href = 'http://eliotjang.shop:5501/signin.html';
   }
 
   // 전체 랭킹 조회
   const ranking = async () => {
     try {
-      const res = await fetch('http://13.209.73.219:3000/api/data/ranking', {
+      const res = await fetch('http://eliotjang.shop:3000/api/data/ranking', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -148,7 +148,7 @@
   // 캐릭터 정보 조회
   const characterInfo = async () => {
     try {
-      const res = await fetch('http://13.209.73.219:3000/api/character/info', {
+      const res = await fetch('http://eliotjang.shop:3000/api/character/info', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +178,7 @@
   // 보유 선수 목록 조회(본인 팀)
   const myPlayers = async () => {
     try {
-      const res = await fetch('http://13.209.73.219:3000/api/character/players', {
+      const res = await fetch('http://eliotjang.shop:3000/api/character/players', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@
     try {
       const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인하세요.');
       if (!characterId) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/data/character/${characterId}/players`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/data/character/${characterId}/players`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +244,7 @@
     try {
       const cash = prompt('구매할 캐시를 입력하세요', '5000');
       if (!cash) return 0;
-      const res = await fetch('http://13.209.73.219:3000/api/character/cash', {
+      const res = await fetch('http://eliotjang.shop:3000/api/character/cash', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -274,7 +274,7 @@
   const draw = async () => {
     try {
       if (!confirm('일반 선수를 뽑으시겠습니까? (선수 뽑기 기본 비용 : 1000 캐시)')) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/draw`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/draw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -316,7 +316,7 @@
       if (!drawCount) return 0;
       const price = drawCount * 5000;
       if (!confirm(`${price} 캐시를 소모하여 ${drawCount}번 뽑으시겠습니까?`)) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/upgrade-draw`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/upgrade-draw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -379,7 +379,7 @@
       );
       if (!characterPlayerId2) return 0;
 
-      const res = await fetch(`http://13.209.73.219:3000/api/character/roster`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/roster`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -425,7 +425,7 @@
   // 선발 명단 제거
   const deleteRoster = async () => {
     try {
-      const res = await fetch(`http://13.209.73.219:3000/api/character/roster`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/roster`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -446,7 +446,7 @@
   // 선발 명단 조회(본인 팀)
   const getMyRoster = async () => {
     try {
-      const res = await fetch(`http://13.209.73.219:3000/api/character/roster`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/roster`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -488,7 +488,7 @@
   const getOtherRoster = async () => {
     try {
       const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
-      const res = await fetch(`http://13.209.73.219:3000/api/data/character/${characterId}/roster`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/data/character/${characterId}/roster`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -529,7 +529,7 @@
   const game = async () => {
     try {
       const opponentCharacterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/futsal/game/${opponentCharacterId}`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/futsal/game/${opponentCharacterId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -559,7 +559,7 @@
   // 랭크 풋살 게임
   const rankGame = async () => {
     try {
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/futsal/rank-game`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/futsal/rank-game`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -599,7 +599,7 @@
         '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
       );
       if (!upgradeMaterial) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/character/players/${characterPlayerId}/upgrade`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/players/${characterPlayerId}/upgrade`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -659,7 +659,7 @@
       );
       if (!characterPlayerId) return 0;
       if (!confirm('선수 방출 시, 방출 횟수별로 선수 뽑기에 패널티가 부과됩니다. (뽑기 비용 1000 캐시 추가)')) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/character/players/${characterPlayerId}`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/players/${characterPlayerId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -707,7 +707,7 @@
       );
       if (!offerCash) return 0;
 
-      const res = await fetch(`http://13.209.73.219:3000/api/character/players/${characterPlayerId}/trading`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/players/${characterPlayerId}/trading`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -776,7 +776,7 @@
       const offerCash = prompt('이적료를 등록하세요.', '[데이터베이스 선수 단일 조회]를 확인하세요');
       if (!offerCash) return 0;
 
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/transfer`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/transfer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -818,7 +818,7 @@
       );
       if (!transferMarketId) return 0;
 
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/transfer/${transferMarketId}`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/transfer/${transferMarketId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -850,7 +850,7 @@
   // 이적 시장 조회
   const getTransfer = async () => {
     try {
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/transfer`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/transfer`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -903,7 +903,7 @@
         '[이적 시장 조회]를 클릭하여 확인하세요.'
       );
       if (!transferMarketId) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/character/content/transfer/${transferMarketId}`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/character/content/transfer/${transferMarketId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -940,7 +940,7 @@
   // 데이터베이스 선수 목록 조회
   const dbPlayers = async () => {
     try {
-      const res = await fetch(`http://13.209.73.219:3000/api/data/players`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/data/players`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -984,7 +984,7 @@
         '[데이터베이스 선수 목록 조회]를 클릭하여 확인하세요.'
       );
       if (!upgradeLevel) return 0;
-      const res = await fetch(`http://13.209.73.219:3000/api/data/player/${playerId}/${upgradeLevel}`, {
+      const res = await fetch(`http://eliotjang.shop:3000/api/data/player/${playerId}/${upgradeLevel}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
