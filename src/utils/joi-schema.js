@@ -42,11 +42,6 @@ export const tradeSchema = Joi.object({
   offerCash: Joi.number().integer().min(0).required(),
 });
 
-// // 강화 선수 유효성 검사
-// const targetCharacterPlayerSchema = Joi.object({
-//   characterPlayerId: Joi.number().integer().required(),
-// });
-
 // 강화 재료 선수 유효성 검사
 export const upgradeMaterialSchema = Joi.object({
   upgradeMaterial: Joi.number().integer().required(),
@@ -64,12 +59,8 @@ export const characterIdSchema = Joi.object({
   characterId: Joi.number().integer().required(),
 });
 
-// 선수 강화 레벨 유효성 검사
-export const upgradeLevelSchema = Joi.object({
-  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
-});
-
-// 선수 아이디 유효성 검사
-export const playerIdSchema = Joi.object({
+// 선수 검색 유효성 검사
+export const playerSchema = Joi.object({
   playerId: Joi.number().integer().required(),
+  upgradeLevel: Joi.number().integer().min(0).max(5).required(),
 });
