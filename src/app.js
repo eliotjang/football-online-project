@@ -18,14 +18,16 @@ import TradingRouter from './routes/character/players/trading.router.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 import config from './utils/configs.js';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 const app = express();
 const PORT = config.serverPort;
 
-app.get('/', (req, res) => {
-  res.send('풋살 온라인 게임입니다.');
-});
-
+const corsOptions = {
+  origin: 'http://127.0.0.1:5501',
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api', [
@@ -47,6 +49,12 @@ app.use('/api', [
   TradingRouter,
 ]);
 app.use(errorHandlingMiddleware);
+
+app.get('/', (req, res) => {
+  const { authorization: token } = req.headers;
+
+  res.send('풋살 온라인 게임입니다.');
+});
 
 app.listen(PORT, () => {
   console.log(PORT, '포트 서버 연결 완료');

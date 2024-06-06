@@ -4,7 +4,10 @@ import { prisma } from '../utils/prisma/index.js';
 
 export default async (req, res, next) => {
   try {
-    const { authorization } = req.cookies;
+    let { authorization } = req.cookies;
+    if (!authorization) {
+      ({ authorization } = req.headers);
+    }
 
     if (!authorization) {
       throw new Error('유효하지 않은 인증입니다.');
