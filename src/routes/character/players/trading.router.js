@@ -20,12 +20,12 @@ const characterPlayerIdSchema = Joi.object({
 // 선수 트레이딩 API (JWT 인증)
 router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
     const { characterPlayerId } = await characterPlayerIdSchema.validateAsync(req.params);
     const { tradeCharacterId, tradeCharacterPlayerId, offerCash } = await tradeSchema.validateAsync(req.body);
 
     // 사용자 및 상대 캐릭터
-    const myCharacter = await prisma.character.findUnique({ where: { characterId } });
+    const myCharacter = req.character;
+    const characterId = myCharacter.characterId;
     const targetCharacter = await prisma.character.findUnique({ where: { characterId: tradeCharacterId } });
 
     if (!myCharacter || !targetCharacter) {

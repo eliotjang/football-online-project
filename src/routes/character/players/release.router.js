@@ -13,10 +13,10 @@ const characterPlayerIdSchema = Joi.object({
 // 보유 선수 방출 API (JWT 인증)
 router.delete('/character/players/:characterPlayerId', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
     const { characterPlayerId } = await characterPlayerIdSchema.validateAsync(req.params);
 
-    const character = await prisma.character.findUnique({ where: { characterId } });
+    const character = req.character;
+    const characterId = character.characterId;
 
     const characterPlayer = await prisma.characterPlayer.findUnique({
       where: { characterPlayerId: +characterPlayerId },
