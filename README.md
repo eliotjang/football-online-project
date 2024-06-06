@@ -69,7 +69,7 @@
 
 - [와이어프레임 링크](https://www.figma.com/design/UcnIVjPYfHQpahml5NBMyH/Fooball-Project-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0-1&t=Rq98wdfSAZc6W5xW-0)
 
-![alt text](./assets/figma-image.png)
+![alt text](./assets/wireframe-image.png)
 
 ### 프론트엔드 구현
 
