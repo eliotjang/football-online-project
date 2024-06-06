@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign in Page</title>
+  </head>
+  <style>
+    label {
+      display: inline-block;
+      width: 80px;
+    }
+
+    div {
+      margin-bottom: 7px;
+    }
+  </style>
+  <body>
+    <form name="sign-in-form">
+      <h1>SIGN IN</h1>
+      <div><label>이메일 </label> <input type="text" name="email" /></div>
+      <div><label>비밀번호 </label> <input type="password" name="password" /></div>
+      <div><button>로그인</button></div>
+    </form>
+  </body>
+</html>
+
+<script>
+  function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+    let expires = 'expires=' + d.toUTCString();
+    document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
+  }
+
+  document.forms[0].addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const res = await fetch('http://localhost:3000/api/account/sign-in', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: this.email.value,
+        password: this.password.value,
+      }),
+    });
+    if (!res.ok) {
+      alert('회원 정보를 확인 해 보세요.');
+      return;
+    }
+
+    const result = await res.json();
+    setCookie('authorization', `Bearer ${result.data.token}`, 3600);
+
+    console.log(result.message);
+    location.href = 'main.html';
+  });
+</script>

@@ -1,34 +1,50 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 import Joi from 'joi';
 
 const router = express.Router();
 
+// 트레이딩 유효성 검사
 const tradeSchema = Joi.object({
   tradeCharacterId: Joi.number().integer().min(0).required(),
   tradeCharacterPlayerId: Joi.number().integer().min(0).required(),
   offerCash: Joi.number().integer().min(0).required(),
 });
 
+// 보유 선수 아이디 유효성 검사
+const characterPlayerIdSchema = Joi.object({
+  characterPlayerId: Joi.number().integer().required(),
+});
+
 // 선수 트레이딩 API (JWT 인증)
-router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.patch('/character/players/:characterPlayerId/trading', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-    const { characterPlayerId } = req.params;
+    const { characterPlayerId } = await characterPlayerIdSchema.validateAsync(req.params);
     const { tradeCharacterId, tradeCharacterPlayerId, offerCash } = await tradeSchema.validateAsync(req.body);
 
     // 사용자 및 상대 캐릭터
-    const myCharacter = await prisma.character.findUnique({ where: { characterId } });
+    const myCharacter = req.character;
+    const characterId = myCharacter.characterId;
     const targetCharacter = await prisma.character.findUnique({ where: { characterId: tradeCharacterId } });
+
+    if (!myCharacter || !targetCharacter) {
+      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터입니다.' });
+    }
 
     // 사용자 및 상대 캐릭터 보유 선수
     const myCharacterPlayer = await prisma.characterPlayer.findUnique({
-      where: { characterPlayerId: +characterPlayerId },
+      where: {
+        characterPlayerId: +characterPlayerId,
+        CharacterId: characterId,
+      },
     });
     const targetCharacterPlayer = await prisma.characterPlayer.findUnique({
-      where: { characterPlayerId: tradeCharacterPlayerId },
+      where: { characterPlayerId: tradeCharacterPlayerId, CharacterId: targetCharacter.characterId },
     });
+    if (!myCharacterPlayer || !targetCharacterPlayer) {
+      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터 보유 선수입니다.' });
+    }
 
     // 사용자 및 상대 트레이드 선수
     const myPlayer = await prisma.player.findFirst({
@@ -37,16 +53,6 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
     const targetPlayer = await prisma.player.findFirst({
       where: { playerId: targetCharacterPlayer.playerId, upgradeLevel: targetCharacterPlayer.upgradeLevel },
     });
-
-    if (!myCharacter || !targetCharacter) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 캐릭터입니다.' });
-    }
-    if (!myCharacterPlayer || !targetCharacterPlayer) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 보유 선수입니다.' });
-    }
-    if (myCharacterPlayer.playerCount === 0 || tradeCharacterPlayerId.playerCount === 0) {
-      return res.status(400).json({ errorMessage: '유효하지 않은 보유 선수의 개수입니다.' });
-    }
 
     // 0. 트레이드 금액 제안 확인
     if (myCharacter.cash < offerCash) {
@@ -198,7 +204,7 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
       message: `${myPlayer.playerName} 선수와 ${targetPlayer.playerName} 선수의 트레이딩이 완료되었습니다.`,
       cashMessage: `선수 트레이드 비용으로 ${compareValuePrice} 캐시가 소모되었습니다.`,
       myData: {
-        charcterName: myCharacter.name,
+        characterName: myCharacter.name,
         beforeTradePlayer: {
           playerName: myPlayer.playerName,
           characterPlayer: {
@@ -214,7 +220,7 @@ router.patch('/trading/:characterPlayerId', authMiddleware, async (req, res, nex
         },
       },
       targetData: {
-        charcterName: targetCharacter.name,
+        characterName: targetCharacter.name,
         beforeTradePlayer: {
           playerName: targetPlayer.playerName,
           characterPlayer: {

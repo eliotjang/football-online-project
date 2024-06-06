@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Futsal Online</title>
+    <style>
+      label {
+        display: inline-block;
+        width: 80px;
+      }
+      h1 {
+        color: #054a14;
+        text-align: center;
+        font-size: 40px;
+      }
+      p {
+        text-align: center;
+      }
+      .btnList {
+        padding: 5px;
+        border: 0.1rem solid;
+        width: 650px;
+        margin: 0 auto;
+      }
+      button {
+        margin: 4px;
+      }
+      body {
+        text-align: center;
+      }
+      button {
+        font-size: 15px;
+      }
+      .printData {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Futsal Online</h1>
+    <div class="logout"><button id="signout">로그아웃</button></div>
+    <div class="btnList">
+      <div class="character">
+        <button id="characterInfo">캐릭터 정보 조회</button>
+        <button id="ranking">🏆전체 랭킹 조회</button>
+      </div>
+      <div class="players">
+        <button id="myPlayers">보유 선수 목록 조회(본인 팀)</button>
+        <button id="otherPlayers">보유 선수 목록 조회(타 팀)</button>
+      </div>
+      <div class="businessModel">
+        <button id="cash">💸캐시 구매</button>
+        <button id="draw">일반 선수 뽑기</button>
+        <button id="upgradeDraw">⭐강화 선수 뽑기 (천장 시스템)</button>
+      </div>
+      <div class="player">
+        <button id="upgrade">🔨보유 선수 강화</button>
+        <button id="release">보유 선수 방출</button>
+        <button id="trade">보유 선수 트레이드</button>
+      </div>
+      <div class="roster">
+        <button id="postRoster">선발 명단 등록</button>
+        <button id="deleteRoster">선발 명단 제거</button>
+        <button id="getMyRoster">선발 명단 조회(본인 팀)</button>
+        <button id="getOtherRoster">선발 명단 조회(타 팀)</button>
+      </div>
+      <div class="futsal">
+        <button id="game">일반(상대 지정) 풋살 게임시작</button>
+        <button id="rankGame">⚽랭크 풋살 게임시작</button>
+      </div>
+      <div class="transfer">
+        <button id="postTransfer">이적 시장 등록</button>
+        <button id="deleteTransfer">이적 시장 등록 취소</button>
+        <button id="getTransfer">이적 시장 조회</button>
+        <button id="buyTransfer">이적 선수 구매</button>
+      </div>
+      <div class="database">
+        <button id="dbPlayers">데이터베이스 선수 목록 조회</button>
+        <button id="dbPlayer">데이터베이스 선수 단일 조회</button>
+      </div>
+    </div>
+    <div class="printData"></div>
+  </body>
+</html>
+
+<script>
+  const authorization = getCookieValue('authorization');
+  if (!authorization) {
+    alert('로그인 해 주세요');
+    location.href = 'signin.html';
+  }
+
+  function getCookieValue(name) {
+    const regex = new RegExp(`(^| )${name}=([^;]+)`);
+    const match = document.cookie.match(regex);
+    if (match) {
+      return match[2];
+    }
+  }
+
+  function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+    let expires = 'expires=' + d.toUTCString();
+    document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
+  }
+
+  // 로그아웃
+  function logout() {
+    setCookie('authorization', '', 0);
+    location.href = 'signin.html';
+  }
+
+  // 전체 랭킹 조회
+  const ranking = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/data/ranking', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = '';
+      data.forEach((user) => {
+        document.querySelector('.printData').innerHTML += `
+      <p>[ ${user.rank}등 ]</p>
+      <p>캐릭터 이름 : ${user.name}</p>
+      <p>랭크 점수 : ${user.gameScore}</p>
+      <p>경기 전적 : ${user.record}</p>
+      <p>승률 : ${user.winRate}</p>
+      <p>캐릭터 ID : ${user.characterId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 캐릭터 정보 조회
+  const characterInfo = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/character/info', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = '';
+      document.querySelector('.printData').innerHTML = `
+      <p>캐릭터 이름 : ${data.name}</p>
+      <p>랭크 점수 : ${data.rankScore}</p>
+      <p>보유 금액 : ${data.cash}</p>
+      <p>선수 방출 횟수 : ${data.releaseCount}</p>
+      <p>강화 뽑기 누적 횟수 : ${data.pityCount}</p>
+      <p>캐릭터 ID : ${data.characterId}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 보유 선수 목록 조회(본인 팀)
+  const myPlayers = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/character/players', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `${result.message}<br>`;
+      data.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>보유 개수 : ${data.playerCount}</p>
+        <p>인벤토리 ID : ${data.characterPlayerId}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 보유 선수 목록 조회(타 팀)
+  const otherPlayers = async () => {
+    try {
+      const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인하세요.');
+      if (!characterId) return 0;
+      const res = await fetch(`http://localhost:3000/api/data/character/players/${characterId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `${result.message}<br>`;
+      data.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>보유 개수 : ${data.playerCount}</p>
+        <p>인벤토리 ID : ${data.characterPlayerId}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 캐시 구매
+  const cash = async () => {
+    try {
+      const cash = prompt('구매할 캐시를 입력하세요', '5000');
+      if (!cash) return 0;
+      const res = await fetch('http://localhost:3000/api/character/cash', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          cash: `${cash}`,
+        }),
+      });
+      const result = await res.json();
+      console.log(result);
+      document.querySelector('.printData').innerHTML =
+        '감사합니다.<br>여러분의 기여 덕분에 서버 비용을 지불할 수 있습니다.';
+      document.querySelector('.printData').innerHTML += `
+      <p>${result.message}</p>
+      <p>보유 금액 : ${result.currentCash}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 일반 선수 뽑기
+  const draw = async () => {
+    try {
+      if (!confirm('일반 선수를 뽑으시겠습니까? (선수 뽑기 기본 비용 : 1000 캐시)')) return 0;
+      const res = await fetch(`http://localhost:3000/api/character/content/draw`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `1000 캐시로 ${result.message}`;
+      if (result.addMessage) {
+        document.querySelector('.printData').innerHTML = `선수 방출 패널티로 1000 캐시가 추가로 소모되었습니다.`;
+      }
+      document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 강화 선수 뽑기 (천장 시스템)
+  const upgradeDraw = async () => {
+    try {
+      const drawCount = prompt('뽑을 횟수를 입력하세요. 누적 횟수가 10이 넘으면 전설의 선수가 반드시 등장합니다!', '1');
+      if (!drawCount) return 0;
+      const price = drawCount * 5000;
+      if (!confirm(`${price} 캐시를 소모하여 ${drawCount}번 뽑으시겠습니까?`)) return 0;
+      const res = await fetch(`http://localhost:3000/api/character/content/upgrade-draw`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          drawCount: `${drawCount}`,
+        }),
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `${result.message}`;
+      if (result.addMessage) {
+        document.querySelector('.printData').innerHTML = `선수 방출 패널티로 1000 캐시가 추가로 소모되었습니다.<br>`;
+      }
+      data.forEach((data) => {
+        if (data.rarity === 0) {
+          document.querySelector('.printData').innerHTML += `
+            <br><span style="font-size: 14pt"><font color='royalblue'>⭐축하드립니다! 전설의 선수를 뽑았습니다!</font><span>
+          `;
+        }
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 선발 명단 등록
+  const postRoster = async () => {
+    try {
+      const characterPlayerId1 = prompt(
+        '등록할 선수의 인벤토리 ID를 입력하세요. 선발 명단 [1/3]',
+        '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId1) return 0;
+      const characterPlayerId2 = prompt(
+        '등록할 선수의 인벤토리 ID를 입력하세요. 선발 명단 [2/3]',
+        '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId2) return 0;
+      const characterPlayerId3 = prompt(
+        '등록할 선수의 인벤토리 ID를 입력하세요. 선발 명단 [3/3]',
+        '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId2) return 0;
+
+      const res = await fetch(`http://localhost:3000/api/character/roster`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          characterPlayerId1: `${characterPlayerId1}`,
+          characterPlayerId2: `${characterPlayerId2}`,
+          characterPlayerId3: `${characterPlayerId3}`,
+        }),
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `${result.message}`;
+      data.forEach((data) => {
+        if (data.rarity === 0) {
+          document.querySelector('.printData').innerHTML += `
+            <br><span style="font-size: 14pt"><font color='royalblue'>다 비켜! ⭐전설의 선수가 출전했습니다!</font><span>
+          `;
+        }
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 선발 명단 제거
+  const deleteRoster = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/character/roster`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      document.querySelector('.printData').innerHTML = `${result.message}`;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 선발 명단 조회(본인 팀)
+  const getMyRoster = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/character/roster`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `출전 선수 명단입니다.<br>`;
+      data.forEach((data) => {
+        if (data.rarity === 0) {
+          document.querySelector('.printData').innerHTML += `
+            <br><span style="font-size: 14pt"><font color='royalblue'>다 비켜! ⭐전설의 선수가 출전했습니다!</font><span>
+          `;
+        }
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 선발 명단 조회(타 팀)
+  const getOtherRoster = async () => {
+    try {
+      const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
+      const res = await fetch(`http://localhost:3000/api/data/character/roster/${characterId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `${result.message}<br>`;
+      data.forEach((data) => {
+        if (data.rarity === 0) {
+          document.querySelector('.printData').innerHTML += `
+            <br><span style="font-size: 14pt"><font color='royalblue'>다 비켜! ⭐전설의 선수가 출전했습니다!</font><span>
+          `;
+        }
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p>
+        <p>선수 DB ID : ${data.playerId}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 일반(상대 지정) 풋살 게임
+  const game = async () => {
+    try {
+      const characterId = prompt('상대 캐릭터 ID를 입력하세요', '[전체 랭킹 조회]를 클릭하여 확인해 보세요');
+      const res = await fetch(`http://localhost:3000/api/character/content/futsal/game/${characterId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.gameLog;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `<p>${result.result}</p><br>`;
+      data.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>득점 시간 : ${data.gameTime}</p>
+        <p>${data.goalTeam}</p>
+        <p>득점 선수 : ${data.goalPlayer}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 랭크 풋살 게임
+  const rankGame = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/character/content/futsal/rank-game`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+      const result = await res.json();
+      console.log(result);
+      const data = result.gameLog;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `<p>${result.result}</p><br>`;
+      data.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>득점 시간 : ${data.time}</p>
+        <p>${data.team}</p>
+        <p>득점 선수 : ${data.goalPlayer}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 보유 선수 강화
+  const upgrade = async () => {
+    try {
+      const characterPlayerId = prompt(
+        '강화할 선수의 인벤토리 ID를 입력하세요. [강화 선수 + 강화 재료 선수]',
+        '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId) return 0;
+      const upgradeMaterial = prompt(
+        '재료로 사용할 선수의 인벤토리 ID를 입력하세요. [강화 선수 + 강화 재료 선수]',
+        '[보유 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!upgradeMaterial) return 0;
+      const res = await fetch(`http://localhost:3000/api/character/players/upgrade/${characterPlayerId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          upgradeMaterial: `${upgradeMaterial}`,
+        }),
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const baseData = result.baseData;
+      const changedData = result.changedData;
+      document.querySelector('.printData').innerHTML = `${result.message}`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ 강화전 선수 데이터 ]</p>
+        <p>[ ${baseData.playerName} ]</p>
+        <p>강화 레벨 : ${baseData.upgradeLevel}</p>
+        <p>희귀도 : ${baseData.rarity}티어</p>
+        <p>선수 가치 : ${baseData.value}캐시</p>
+        <p>속력 : ${baseData.playerSpeed}</p>
+        <p>골 결정력 : ${baseData.goalDecision}</p>
+        <p>슈팅 파워 : ${baseData.shootPower}</p>
+        <p>수비 : ${baseData.defence}</p>
+        <p>스태미나 : ${baseData.stamina}</p>
+        <p>선수 DB ID : ${baseData.playerId}</p><br>
+      `;
+
+      document.querySelector('.printData').innerHTML += `
+        <p>[ 강화후 선수 데이터 ]</p>
+        <p>[ ${changedData.playerName} ]</p>
+        <p>강화 레벨 : ${changedData.upgradeLevel}</p>
+        <p>희귀도 : ${changedData.rarity}티어</p>
+        <p>선수 가치 : ${changedData.value}캐시</p>
+        <p>속력 : ${changedData.playerSpeed}</p>
+        <p>골 결정력 : ${changedData.goalDecision}</p>
+        <p>슈팅 파워 : ${changedData.shootPower}</p>
+        <p>수비 : ${changedData.defence}</p>
+        <p>스태미나 : ${changedData.stamina}</p>
+        <p>선수 DB ID : ${changedData.playerId}</p><br>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 보유 선수 방출
+  const release = async () => {
+    try {
+      const characterPlayerId = prompt(
+        '방출할 선수의 인벤토리 ID를 입력하세요.',
+        '[보유 선수 목록 조회(본인 팀)]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId) return 0;
+      if (!confirm('선수 방출 시, 방출 횟수별로 선수 뽑기에 패널티가 부과됩니다. (뽑기 비용 1000 캐시 추가)')) return 0;
+      const res = await fetch(`http://localhost:3000/api/character/players/${characterPlayerId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const baseCash = result.baseCash;
+      const currentCash = result.currentCash;
+      const price = currentCash - baseCash;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `<p>${price} 캐시가 정산되었습니다.</p>`;
+      document.querySelector('.printData').innerHTML += `<p>보유 금액 : ${currentCash} 캐시</p>`;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 보유 선수 트레이드
+  const trade = async () => {
+    try {
+      const characterPlayerId = prompt(
+        '트레이드할 보유 선수의 인벤토리 ID를 입력하세요.',
+        '[보유 선수 목록 조회(본인 팀)]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId) return 0;
+      const tradeCharacterId = prompt(
+        '트레이드를 원하는 캐릭터 ID를 입력하세요.',
+        '[전체 랭킹 조회]를 클릭하여 확인하세요.'
+      );
+      if (!tradeCharacterId) return 0;
+      const tradeCharacterPlayerId = prompt(
+        '트레이드를 원하는 선수의 인벤토리 ID를 입력하세요.',
+        '[보유 선수 목록 조회(타 팀)]를 클릭하여 확인하세요.'
+      );
+      if (!tradeCharacterPlayerId) return 0;
+      const offerCash = prompt(
+        '선수 트레이드 제안 금액을 제시하세요',
+        '[보유 선수 목록 조회(타 팀)] 이후 [데이터베이스 선수 단일 조회]를 확인하세요'
+      );
+      if (!offerCash) return 0;
+
+      const res = await fetch(`http://localhost:3000/api/character/players/trading/${characterPlayerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          tradeCharacterId: `${tradeCharacterId}`,
+          tradeCharacterPlayerId: `${tradeCharacterPlayerId}`,
+          offerCash: `${offerCash}`,
+        }),
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const myData = result.myData;
+      const targetData = result.targetData;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `<p>${result.cashMessage}</p>`;
+      document.querySelector('.printData').innerHTML += `<p>${myData.characterName}님의 트레이드 결과입니다.</p>`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ 트레이드 변경 전 ]</p>
+        <p>${myData.beforeTradePlayer.playerName}</p>
+        <p>인벤토리 ID ${myData.beforeTradePlayer.characterPlayer.characterPlayerId}</p>
+        <p>캐릭터 ID ${myData.beforeTradePlayer.characterPlayer.CharacterId}</p>
+        <p>선수 DB ID${myData.beforeTradePlayer.characterPlayer.playerId}</p>
+        <p>강화 레벨 ${myData.beforeTradePlayer.characterPlayer.upgradeLevel}</p>
+        <p>[ 트레이드 변경 후 ]</p>
+        <p>${myData.afterTradePlayer.playerName}</p>
+        <p>인벤토리 ID : ${myData.afterTradePlayer.characterPlayer.characterPlayerId}</p>
+        <p>캐릭터 ID : ${myData.afterTradePlayer.characterPlayer.CharacterId}</p>
+        <p>선수 DB ID : ${myData.afterTradePlayer.characterPlayer.playerId}</p>
+        <p>강화 레벨 : ${myData.afterTradePlayer.characterPlayer.upgradeLevel}</p>
+      `;
+      document.querySelector('.printData').innerHTML += `<p>${targetData.characterName}님의 트레이드 결과입니다.</p>`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ 트레이드 변경 전 ]</p>
+        <p>${targetData.beforeTradePlayer.playerName}</p>
+        <p>인벤토리 ID : ${targetData.beforeTradePlayer.characterPlayer.characterPlayerId}</p>
+        <p>캐릭터 ID : ${targetData.beforeTradePlayer.characterPlayer.CharacterId}</p>
+        <p>선수 DB ID : ${targetData.beforeTradePlayer.characterPlayer.playerId}</p>
+        <p>강화 레벨 : ${targetData.beforeTradePlayer.characterPlayer.upgradeLevel}</p>
+        <p>[ 트레이드 변경 후 ]</p>
+        <p>${targetData.afterTradePlayer.playerName}</p>
+        <p>인벤토리 ID : ${targetData.afterTradePlayer.characterPlayer.characterPlayerId}</p>
+        <p>캐릭터 ID : ${targetData.afterTradePlayer.characterPlayer.CharacterId}</p>
+        <p>선수 DB ID : ${targetData.afterTradePlayer.characterPlayer.playerId}</p>
+        <p>강화 레벨 : ${targetData.afterTradePlayer.characterPlayer.upgradeLevel}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 이적 시장 등록
+  const postTransfer = async () => {
+    try {
+      const characterPlayerId = prompt(
+        '이적 선수로 등록할 보유 선수의 인벤토리 ID를 입력하세요.',
+        '[보유 선수 목록 조회(본인 팀)]를 클릭하여 확인하세요.'
+      );
+      if (!characterPlayerId) return 0;
+
+      const offerCash = prompt('이적료를 등록하세요.', '[데이터베이스 선수 단일 조회]를 확인하세요');
+      if (!offerCash) return 0;
+
+      const res = await fetch(`http://localhost:3000/api/character/content/transfer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          characterPlayerId: `${characterPlayerId}`,
+          offerCash: `${offerCash}`,
+        }),
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>이적 시장 ID : ${data.transferMarketId}</p>
+        <p>캐릭터 : ${data.characterName}</p>
+        <p>캐릭터 ID : ${data.characterId}</p>
+        <p>선수 DB ID${data.playerId}</p>
+        <p>이적료 : ${data.offerCash}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 이적 등록 취소
+  const deleteTransfer = async () => {
+    try {
+      const transferMarketId = prompt(
+        '이적 선수 등록을 취소할 선수의 이적 시장 ID를 입력하세요.',
+        '[이적 시장 조회]를 클릭하여 확인하세요.'
+      );
+      if (!transferMarketId) return 0;
+
+      const res = await fetch(`http://localhost:3000/api/character/content/transfer/${transferMarketId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p>`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>이적 시장 ID : ${data.transferMarketId}</p>
+        <p>캐릭터 : ${data.characterName}</p>
+        <p>캐릭터 ID : ${data.characterId}</p>
+        <p>선수 DB ID${data.playerId}</p>
+        <p>이적료 : ${data.offerCash}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 이적 시장 조회
+  const getTransfer = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/character/content/transfer`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data1 = result.possibleTransferMarket;
+      const data2 = result.impossibleTransferMarket;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p><br>`;
+      document.querySelector('.printData').innerHTML += `<p>[ 이적 시장 (진행중) ]</p>`;
+      data1.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>${data.playerName}</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>이적 시장 ID : ${data.transferMarketId}</p>
+        <p>캐릭터 : ${data.characterName}</p>
+        <p>캐릭터 ID : ${data.characterId}</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+        <p>이적료 : ${data.offerCash} 캐시</p><br>
+      `;
+      });
+      document.querySelector('.printData').innerHTML += `<p>[ 이적 시장 (이적 완료) ]</p>`;
+      data2.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>${data.playerName}</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>이적 시장 ID : ${data.transferMarketId}</p>
+        <p>캐릭터 : ${data.characterName}</p>
+        <p>캐릭터 ID : ${data.characterId}</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+        <p>이적료 : ${data.offerCash} 캐시</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 이적 선수 구매
+  const buyTransfer = async () => {
+    try {
+      const transferMarketId = prompt(
+        '구매할 이적 선수의 이적 시장 ID를 입력하세요.',
+        '[이적 시장 조회]를 클릭하여 확인하세요.'
+      );
+      if (transferMarketId) return 0;
+      const res = await fetch(`http://localhost:3000/api/character/content/transfer/${transferMarketId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${authorization}`,
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data = result.data;
+      document.querySelector('.printData').innerHTML = `<p>${result.message}</p><br>`;
+
+      document.querySelector('.printData').innerHTML += `
+        <p>[ 이적 선수 ]</p>
+        <p>${data.playerName}</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>이적 시장 ID : ${data.transferMarketId}</p>
+        <p>캐릭터 : ${data.characterName}</p>
+        <p>캐릭터 ID : ${data.characterId}</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+        <p>이적료 : ${data.offerCash} 캐시</p><br>
+        <p>[ 구매자 ]</p>
+        <p>캐릭터 : ${data.transferCharacterName}</p>
+        <p>캐릭터 ID : ${data.transferCharacterId}</p>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 데이터베이스 선수 목록 조회
+  const dbPlayers = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/data/players`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data = result.player;
+
+      document.querySelector('.printData').innerHTML = `<p>데이터베이스 선수(0강) 목록 입니다.</p><br>`;
+      data.forEach((data) => {
+        document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p><br>
+      `;
+      });
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  // 데이터베이스 선수 단일 조회
+  const dbPlayer = async () => {
+    try {
+      const playerId = prompt('선수 DB ID를 입력하세요.', '[데이터베이스 선수 목록 조회]를 클릭하여 확인하세요.');
+      if (!playerId) return 0;
+      const upgradeLevel = prompt(
+        '확인할 DB 선수의 강화 레벨을 입력하세요.',
+        '[데이터베이스 선수 목록 조회]를 클릭하여 확인하세요.'
+      );
+      if (!upgradeLevel) return 0;
+      const res = await fetch(`http://localhost:3000/api/data/player/${playerId}/${upgradeLevel}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const result = await res.json();
+      console.log(result);
+      const data = result.player;
+
+      document.querySelector('.printData').innerHTML = `<p>데이터베이스 선수입니다.</p>`;
+      document.querySelector('.printData').innerHTML += `
+        <p>[ ${data.playerName} ]</p>
+        <p>선수 DB ID : ${data.playerId}</p>
+        <p>강화 레벨 : ${data.upgradeLevel}</p>
+        <p>희귀도 : ${data.rarity}티어</p>
+        <p>선수 가치 : ${data.value}캐시</p>
+        <p>속력 : ${data.playerSpeed}</p>
+        <p>골 결정력 : ${data.goalDecision}</p>
+        <p>슈팅 파워 : ${data.shootPower}</p>
+        <p>수비 : ${data.defence}</p>
+        <p>스태미나 : ${data.stamina}</p><br>
+      `;
+    } catch (error) {
+      location.reload(true);
+      alert(error.name);
+      console.log(error);
+    }
+  };
+
+  document.getElementById('signout').addEventListener('click', () => {
+    logout();
+  });
+  document.getElementById('ranking').addEventListener('click', () => {
+    ranking();
+  });
+  document.getElementById('characterInfo').addEventListener('click', () => {
+    characterInfo();
+  });
+  document.getElementById('cash').addEventListener('click', () => {
+    cash();
+  });
+  document.getElementById('myPlayers').addEventListener('click', () => {
+    myPlayers();
+  });
+  document.getElementById('otherPlayers').addEventListener('click', () => {
+    otherPlayers();
+  });
+  document.getElementById('draw').addEventListener('click', () => {
+    draw();
+  });
+  document.getElementById('upgradeDraw').addEventListener('click', () => {
+    upgradeDraw();
+  });
+  document.getElementById('postRoster').addEventListener('click', () => {
+    postRoster();
+  });
+  document.getElementById('deleteRoster').addEventListener('click', () => {
+    deleteRoster();
+  });
+  document.getElementById('getMyRoster').addEventListener('click', () => {
+    getMyRoster();
+  });
+  document.getElementById('getOtherRoster').addEventListener('click', () => {
+    getOtherRoster();
+  });
+  document.getElementById('game').addEventListener('click', () => {
+    game();
+  });
+  document.getElementById('rankGame').addEventListener('click', () => {
+    rankGame();
+  });
+  document.getElementById('upgrade').addEventListener('click', () => {
+    upgrade();
+  });
+  document.getElementById('release').addEventListener('click', () => {
+    release();
+  });
+  document.getElementById('trade').addEventListener('click', () => {
+    trade();
+  });
+  document.getElementById('postTransfer').addEventListener('click', () => {
+    postTransfer();
+  });
+  document.getElementById('deleteTransfer').addEventListener('click', () => {
+    deleteTransfer();
+  });
+  document.getElementById('getTransfer').addEventListener('click', () => {
+    getTransfer();
+  });
+  document.getElementById('buyTransfer').addEventListener('click', () => {
+    buyTransfer();
+  });
+  document.getElementById('dbPlayers').addEventListener('click', () => {
+    dbPlayers();
+  });
+  document.getElementById('dbPlayer').addEventListener('click', () => {
+    dbPlayer();
+  });
+</script>

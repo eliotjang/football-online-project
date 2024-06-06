@@ -1,10 +1,10 @@
 import express from 'express';
-import { prisma } from '../utils/prisma/index.js';
+import { prisma } from '../../utils/prisma/index.js';
 
 const router = express.Router();
 
 // 유저 랭킹 조회 API
-router.get('/ranking', async (req, res, next) => {
+router.get('/data/ranking', async (req, res, next) => {
   try {
     // 모든 캐릭터 조회
     const characters = await prisma.character.findMany({});

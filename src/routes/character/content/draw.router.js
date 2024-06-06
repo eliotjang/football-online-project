@@ -1,20 +1,15 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
 
 const router = express.Router();
 
 // 선수 뽑기 API (JWT 인증)
-router.post('/draw', authMiddleware, async (req, res, next) => {
+router.post('/character/content/draw', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
+    const character = req.character;
     const drawPrice = 1000;
-
-    const character = await prisma.character.findFirst({
-      //캐릭터 정보 조회
-      where: { characterId },
-    });
 
     // 선수 방출횟수 확인
     let releaseCount = character.releaseCount;
@@ -84,7 +79,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             cash: character.cash - price,
           },
@@ -126,7 +121,7 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
     if (releaseCount > 0) {
       // 선수 방출 패널티 횟수 차감
       await prisma.character.update({
-        where: { characterId },
+        where: { characterId: character.characterId },
         data: {
           releaseCount: { decrement: 1 },
         },
@@ -148,19 +143,14 @@ router.post('/draw', authMiddleware, async (req, res, next) => {
   }
 });
 
-router.post('/draw/rare', authMiddleware, async (req, res, next) => {
+router.post('/character/content/upgrade-draw', authMiddleware, async (req, res, next) => {
   // 고급 선수 뽑기 API
   try {
-    const { characterId } = req.character;
+    const character = req.character;
     const { drawCount } = req.body;
     const drawPrice = 5000;
 
     let pitySystemStatus = false;
-
-    const character = await prisma.character.findFirst({
-      //캐릭터 정보 조회
-      where: { characterId },
-    });
 
     //현재 천장까지 뽑은 횟수
     let currentPityCount = character.pityCount;
@@ -241,18 +231,18 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         }
       }
 
-      if (currentPityCount >= 9) { //천장을 찍었다면 true로 상태를 변환
+      if (currentPityCount >= 9) {
+        //천장을 찍었다면 true로 상태를 변환
         pitySystemStatus = true;
       }
 
-      if (currentPityCount >= 9 || rarity == 0) { //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
+      if (currentPityCount >= 9 || rarity == 0) {
+        //천장 10에 도달했을 경우 뽑을 선수 0티어로 설정
         rarity = 0;
-        currentPityCount = 0;//좋은것을 뽑앗을 경우 천장 횟수 초기화
+        currentPityCount = 0; //좋은것을 뽑앗을 경우 천장 횟수 초기화
       } else {
-        currentPityCount++ //아닐경우 카운트 추가
+        currentPityCount++; //아닐경우 카운트 추가
       }
-
-
 
       const playerList = await prisma.player.findMany({
         //뽑기 선수 리스트 조회
@@ -314,7 +304,7 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         }
       }
     }
-    console.log(existPlayerList)
+    console.log(existPlayerList);
 
     // 선수 방출 패널티 금액 추가
     let price = drawPrice * drawCount;
@@ -326,22 +316,19 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
       async (tx) => {
         const characterCashUpdate = await tx.character.update({
           //캐쉬 차감
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             cash: { decrement: price },
           },
         });
 
         const playerUpdate = await tx.characterPlayer.createMany({
-          data: [
-            ...notExistPlayerList
-          ],
+          data: [...notExistPlayerList],
         });
 
         //존재한다면 보유 목록에 선수 카운트 1 더하기
 
         for (const existPlayer of existPlayerList) {
-
           const playerUpdate = await tx.characterPlayer.update({
             where: { characterPlayerId: existPlayer.characterPlayerId },
             data: {
@@ -351,14 +338,13 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
         }
 
         const characterUpdate = await tx.character.update({
-          where: { characterId },
+          where: { characterId: character.characterId },
           data: {
             pityCount: currentPityCount,
-          }
-        })
+          },
+        });
 
         return [characterCashUpdate, playerUpdate, characterUpdate];
-
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, // 격리 레벨
@@ -368,7 +354,7 @@ router.post('/draw/rare', authMiddleware, async (req, res, next) => {
     if (releaseCount > 0) {
       // 선수 방출 패널티 횟수 차감, 천장 이후 뽑은 횟수 수정
       await prisma.character.update({
-        where: { characterId },
+        where: { characterId: character.characterId },
         data: {
           releaseCount: { decrement: decrementReleaseCount },
         },

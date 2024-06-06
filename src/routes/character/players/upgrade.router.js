@@ -1,9 +1,9 @@
 import express from 'express';
 import Joi from 'joi';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../utils/prisma/index.js';
 import { Prisma } from '@prisma/client';
-import Futsal from '../controllers/functions.js';
+import Futsal from '../../../controllers/functions.js';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ function upgrade(targetUpgradeLevel, materialUpgradeLevel) {
 }
 
 // 선수 강화 API 기능 구현 (JWT 인증)
-router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next) => {
+router.post('/character/players/:characterPlayerId/upgrade', authMiddleware, async (req, res, next) => {
   try {
     const { characterId } = req.character;
     const character = await prisma.character.findUnique({
@@ -47,7 +47,7 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === targetCharacterPlayerId;
     });
 
-    if (!targetCharacterPlayer || targetCharacterPlayer.playerCount < 1) {
+    if (!targetCharacterPlayer) {
       return res.status(400).json({ errorMessage: '강화할 선수가 현재 보유한 선수가 아닙니다.' });
     }
     if (targetCharacterPlayer.upgradeLevel > 4) {
@@ -61,12 +61,12 @@ router.post('/upgrade/:characterPlayerId', authMiddleware, async (req, res, next
       return characterPlayer.characterPlayerId === materialCharacterPlayerId;
     });
 
-    if (
-      !materialCharacterPlayer ||
-      materialCharacterPlayer.playerCount < 1 ||
-      (materialCharacterPlayer === targetCharacterPlayer && materialCharacterPlayer.playerCount < 2)
-    ) {
+    if (!materialCharacterPlayer) {
       return res.status(400).json({ errorMessage: '강화 재료 선수가 현재 보유한 선수가 아닙니다.' });
+    }
+
+    if (materialCharacterPlayer === targetCharacterPlayer && materialCharacterPlayer.playerCount < 2) {
+      return res.status(400).json({ errorMessage: '강화 재료 선수의 수량이 부족합니다.' });
     }
 
     if (targetCharacterPlayer.playerId !== materialCharacterPlayer.playerId) {

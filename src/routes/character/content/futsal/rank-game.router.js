@@ -1,22 +1,17 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../../utils/prisma/index.js';
 
 const router = express.Router();
 
 // 랭크 풋살 게임 API (JWT 인증)
-router.post('/games/play', authMiddleware, async (req, res, next) => {
+router.post('/character/content/futsal/rank-game', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-    const myCharacter = await prisma.character.findUnique({
-      where: {
-        characterId,
-      },
-    });
+    const myCharacter = req.character;
 
     const isExistRoster = await prisma.roster.findUnique({
       where: {
-        CharacterId: characterId,
+        CharacterId: myCharacter.characterId,
       },
     });
     if (!isExistRoster) {
@@ -159,7 +154,6 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
     let myGoal = 0;
     let targetGoal = 0;
     const gameLog = [];
-    gameLog.push('[경기 실시간 골 점수 기록]');
 
     let characterId1Win = false;
     let characterId1Draw = false;
@@ -292,7 +286,7 @@ router.post('/games/play', authMiddleware, async (req, res, next) => {
       });
 
       return res.status(200).json({
-        message: `${myCharacter.name} 팀이 비겼습니다. 치열했네요!`,
+        message: `${targetData.name} 팀과 비겼습니다. 치열했네요!`,
         result: `${myCharacter.name} ${myGoal} - ${targetGoal} ${targetData.name}`,
         gameLog: gameLog,
       });

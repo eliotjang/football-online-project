@@ -1,24 +1,28 @@
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware.js';
-import { prisma } from '../utils/prisma/index.js';
+import authMiddleware from '../../../../middlewares/auth.middleware.js';
+import { prisma } from '../../../../utils/prisma/index.js';
+import Joi from 'joi';
 
 const router = express.Router();
 
-// 일반(상대지정) 풋살 게임 API
-router.post('/games/play/:characterId', authMiddleware, async (req, res, next) => {
-  try {
-    const { characterId } = req.params;
+const opponentCharacterIdSchema = Joi.object({
+  characterId: Joi.number().integer().required(),
+});
 
-    const teamACharacter = await prisma.character.findFirst({
-      //A,B팀 캐릭터 정보 조회
-      where: {
-        characterId: req.character.characterId,
-      },
-    });
+// 일반(상대지정) 풋살 게임 API
+router.post('/character/content/futsal/game/:opponentCharacterId', authMiddleware, async (req, res, next) => {
+  try {
+    const { opponentCharacterId } = await opponentCharacterIdSchema.validateAsync(req.params);
+
+    const teamACharacter = req.character;
+
+    if (opponentCharacterId == teamACharacter.characterId) {
+      return res.status(400).json({ message: '자신말고 상대를 지정해 주기 바랍니다.' });
+    }
 
     const teamBCharacter = await prisma.character.findFirst({
       where: {
-        characterId: +characterId,
+        characterId: +opponentCharacterId,
       },
     });
 
@@ -150,19 +154,19 @@ router.post('/games/play/:characterId', authMiddleware, async (req, res, next) =
 
     if (teamAScore > teamBScore) {
       return res.status(200).json({
-        message: `유저 ${teamACharacter.name} 승리!`,
+        message: `${teamACharacter.name} 팀이 승리했습니다. 축하드립니다!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });
     } else if (teamAScore < teamBScore) {
       return res.status(200).json({
-        message: `유저 ${teamBCharacter.name} 승리!`,
+        message: `${teamACharacter.name} 팀이 패배했습니다. 좋은 선수로 구성해보세요!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });
     } else if (teamAScore == teamBScore) {
       return res.status(200).json({
-        message: `무승부!`,
+        message: `${teamBCharacter.name} 팀과 비겼습니다. 치열했네요!`,
         result: `${teamACharacter.name} ${teamAScore} : ${teamBScore} ${teamBCharacter.name}`,
         gameLog: gameLog,
       });
