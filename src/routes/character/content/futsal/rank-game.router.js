@@ -7,12 +7,8 @@ const router = express.Router();
 // 랭크 풋살 게임 API (JWT 인증)
 router.post('/character/content/futsal/rank-game', authMiddleware, async (req, res, next) => {
   try {
-    const { characterId } = req.character;
-    const myCharacter = await prisma.character.findUnique({
-      where: {
-        characterId,
-      },
-    });
+    const myCharacter = req.character;
+    const characterId = myCharacter.characterId;
 
     const isExistRoster = await prisma.roster.findUnique({
       where: {

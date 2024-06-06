@@ -12,8 +12,8 @@ const playerIdSchema = Joi.object({
   playerId: Joi.number().integer().required(),
 });
 
+// 데이터 베이스 선수 목록 조회
 router.get('/data/players', async (req, res, next) => {
-  // 데이터 베이스 선수 목록 조회
   try {
     const player = await prisma.player.findMany({
       where: {
@@ -30,8 +30,8 @@ router.get('/data/players', async (req, res, next) => {
   }
 });
 
+// 데이터 베이스 단일 선수 목록 조회
 router.get('/data/player/:playerId', async (req, res, next) => {
-  // 데이터 베이스 단일 선수 목록 조회
   try {
     const { playerId } = await playerIdSchema.validateAsync(req.params);
     const { upgradeLevel } = await upgradeLevelSchema.validateAsync(req.body);
