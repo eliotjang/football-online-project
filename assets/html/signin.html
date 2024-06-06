@@ -34,7 +34,7 @@
 
   document.forms[0].addEventListener('submit', async function (e) {
     e.preventDefault();
-    const res = await fetch('http://localhost:3000/api/account/sign-in', {
+    const res = await fetch('http://13.209.73.219:3000/api/account/sign-in', {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
