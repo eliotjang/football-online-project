@@ -53,7 +53,7 @@ app.use(errorHandlingMiddleware);
 app.get('/', (req, res) => {
   const { authorization: token } = req.headers;
 
-  res.send('풋살 온라인 게임입니다.');
+  res.send('풋살 온라인 게임 서버 서비스입니다.');
 });
 
 app.listen(PORT, () => {
