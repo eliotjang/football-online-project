@@ -8,6 +8,8 @@
 ### 프로젝트 설계 및 구현
 
 - [프로젝트 회의록](https://eliotjang.notion.site/d466766b85db4ea4a22f9a56976c6515?pvs=4)
+- [프로젝트 시연영상](https://youtu.be/ZOEwkiQf5qA?si=ok3diEbZOzoKHrN1)
+- [프로젝트 포트폴리오](https://docs.google.com/presentation/d/19GCR0Yfx-QB3uZDcruxrA3qwUqth27FP_q3XNrAmauE/edit?usp=sharing)
 
 ### API 명세서
 
