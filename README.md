@@ -3,7 +3,7 @@
 ### 풋살 온라인 FE / BE AWS 배포
 
 - [풋살 온라인 BackEnd 서버 링크](http://eliotjang.shop:3000)
-- [풋살 온라인 FrontEnd 서버 링크](http://eliotjang.shop:3000)
+- [풋살 온라인 FrontEnd 서버 링크](http://eliotjang.shop:5501)
 
 ### 프로젝트 설계 및 구현
 
